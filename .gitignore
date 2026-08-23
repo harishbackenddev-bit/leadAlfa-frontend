@@ -28,4 +28,5 @@ design_ref/*
 .env.local
 .env.*
 .vercel
-deploy.md
+deploy.mdnode_modules/
+dist/
