@@ -1,0 +1,84 @@
+{
+  "mockMessages": [
+    {
+      "id": 1,
+      "name": "Alex John",
+      "avatar": "/src/assets/images/campaign/chatImage.jpg",
+      "lastMessage": "Thank you very much. I'm glad...",
+      "time": "4m ago",
+      "isOnline": true
+    },
+    {
+      "id": 2,
+      "name": "Sarah Miller",
+      "avatar": "/src/assets/images/campaign/chatImage.jpg",
+      "lastMessage": "Looking forward to working with you!",
+      "time": "12m ago",
+      "isOnline": true
+    },
+    {
+      "id": 3,
+      "name": "John Doe",
+      "avatar": "/src/assets/images/campaign/chatImage.jpg",
+      "lastMessage": "Can we schedule a call tomorrow?",
+      "time": "1h ago",
+      "isOnline": false
+    },
+    {
+      "id": 4,
+      "name": "Emma Wilson",
+      "avatar": "/src/assets/images/campaign/chatImage.jpg",
+      "lastMessage": "The campaign details look great",
+      "time": "2h ago",
+      "isOnline": true
+    },
+    {
+      "id": 5,
+      "name": "Michael Brown",
+      "avatar": "/src/assets/images/campaign/chatImage.jpg",
+      "lastMessage": "I've sent the final deliverables",
+      "time": "3h ago",
+      "isOnline": false
+    },
+    {
+      "id": 6,
+      "name": "Lisa Anderson",
+      "avatar": "/src/assets/images/campaign/chatImage.jpg",
+      "lastMessage": "Thanks for the update!",
+      "time": "5h ago",
+      "isOnline": true
+    }
+  ],
+  "mockChatMessages": [
+    {
+      "id": 1,
+      "text": "Hi Alex! How you doing?",
+      "time": "17:45",
+      "isOwn": true
+    },
+    {
+      "id": 2,
+      "text": "I hope you have gone through the work requirements.",
+      "time": "17:45",
+      "isOwn": true
+    },
+    {
+      "id": 3,
+      "text": "Hi there! Doing good..",
+      "time": "17:45",
+      "isOwn": false
+    },
+    {
+      "id": 4,
+      "text": "Yes! I have gone through the requirements",
+      "time": "17:45",
+      "isOwn": false
+    },
+    {
+      "id": 5,
+      "text": "Okay! sounds good, do let me know for any questions..",
+      "time": "18:00",
+      "isOwn": true
+    }
+  ]
+}

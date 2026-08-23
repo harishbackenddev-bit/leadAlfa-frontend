@@ -1,0 +1,32 @@
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
+
+/**
+ * Scroll the window (and any inner scroll containers marked with
+ * `data-scroll-root`) back to the top whenever the route changes.
+ *
+ * Without this, navigating from a deep-scrolled page lands the user at the
+ * same scroll position on the next page, which feels broken.
+ */
+export default function ScrollToTop() {
+  const { pathname, search } = useLocation();
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    // Honor browser back/forward scroll restoration when the user explicitly
+    // goes back — but for forward (PUSH) navigations we always reset.
+    const navEntry = window.performance?.getEntriesByType?.("navigation")?.[0];
+    if (navEntry?.type === "back_forward") return;
+
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+
+    // Reset any inner scrollable containers (e.g. layouts with their own
+    // overflow). Opt-in via `data-scroll-root` on the element.
+    document
+      .querySelectorAll("[data-scroll-root]")
+      .forEach((el) => el.scrollTo({ top: 0, left: 0 }));
+  }, [pathname, search]);
+
+  return null;
+}

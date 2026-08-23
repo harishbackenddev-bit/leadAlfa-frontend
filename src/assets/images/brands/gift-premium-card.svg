@@ -1,0 +1,72 @@
+<svg width="1200" height="520" viewBox="0 0 1200 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="520" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F8FAFC"/>
+      <stop offset="1" stop-color="#EEF2F7"/>
+    </linearGradient>
+    <linearGradient id="cta" x1="0" y1="0" x2="400" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0F57A7"/>
+      <stop offset="1" stop-color="#1085C8"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="0" y="0" width="1200" height="520" rx="32" fill="url(#bg)"/>
+
+  <g transform="translate(0, 0)">
+    <circle cx="600" cy="72" r="28" fill="#E6F0FF"/>
+    <path d="M600 48 L606 64 L622 64 L609 74 L615 90 L600 80 L585 90 L591 74 L578 64 L594 64 Z" fill="#0F57A7"/>
+  </g>
+
+  <text x="600" y="150" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="700" fill="#0F172A">Gift Campaigns are a Premium Feature</text>
+  <text x="600" y="184" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="500" fill="#64748B">Upgrade to unlock gift-based campaigns and manage product gifting</text>
+
+  <!-- Left Card -->
+  <rect x="120" y="220" width="440" height="230" rx="20" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
+  <rect x="150" y="250" width="44" height="44" rx="12" fill="#0F57A7"/>
+  <path d="M162 276 L175 263 L182 270" stroke="#FFFFFF" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="210" y="270" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#0F172A">Premium (Growth)</text>
+  <text x="210" y="292" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="600" fill="#0F57A7">R 999.00/month</text>
+
+  <circle cx="176" cy="320" r="7" fill="#16A34A"/>
+  <path d="M172 320 L175 323 L180 317" stroke="#FFFFFF" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="196" y="326" font-family="Inter, Arial, sans-serif" font-size="14" fill="#475569">5 Active Gift Campaigns</text>
+
+  <circle cx="176" cy="348" r="7" fill="#16A34A"/>
+  <path d="M172 348 L175 351 L180 345" stroke="#FFFFFF" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="196" y="354" font-family="Inter, Arial, sans-serif" font-size="14" fill="#475569">Basic Analytics</text>
+
+  <circle cx="176" cy="376" r="7" fill="#16A34A"/>
+  <path d="M172 376 L175 379 L180 373" stroke="#FFFFFF" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="196" y="382" font-family="Inter, Arial, sans-serif" font-size="14" fill="#475569">Manual Messaging</text>
+
+  <rect x="160" y="405" width="360" height="36" rx="10" fill="url(#cta)"/>
+  <text x="340" y="429" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="600" fill="#FFFFFF">Select Growth</text>
+
+  <!-- Right Card -->
+  <rect x="640" y="220" width="440" height="230" rx="20" fill="#FFFFFF" stroke="#0F57A7" stroke-width="2"/>
+  <rect x="930" y="210" width="120" height="24" rx="12" fill="#0F57A7"/>
+  <text x="990" y="227" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="600" fill="#FFFFFF">RECOMMENDED</text>
+
+  <rect x="670" y="250" width="44" height="44" rx="12" fill="#0F57A7"/>
+  <path d="M682 282 V263" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+  <path d="M691 282 V257" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+  <path d="M700 282 V268" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+
+  <text x="730" y="270" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#0F172A">Premium (Scale)</text>
+  <text x="730" y="292" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="600" fill="#0F57A7">R 2 499.00/month</text>
+
+  <circle cx="696" cy="320" r="7" fill="#16A34A"/>
+  <path d="M692 320 L695 323 L700 317" stroke="#FFFFFF" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="716" y="326" font-family="Inter, Arial, sans-serif" font-size="14" fill="#475569">Unlimited Gift Campaigns</text>
+
+  <circle cx="696" cy="348" r="7" fill="#16A34A"/>
+  <path d="M692 348 L695 351 L700 345" stroke="#FFFFFF" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="716" y="354" font-family="Inter, Arial, sans-serif" font-size="14" fill="#475569">Deep Audience Data</text>
+
+  <circle cx="696" cy="376" r="7" fill="#16A34A"/>
+  <path d="M692 376 L695 379 L700 373" stroke="#FFFFFF" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="716" y="382" font-family="Inter, Arial, sans-serif" font-size="14" fill="#475569">Bulk Invites & Auto-Nudges</text>
+
+  <rect x="680" y="405" width="360" height="36" rx="10" fill="url(#cta)"/>
+  <text x="860" y="429" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="600" fill="#FFFFFF">Select Scale</text>
+</svg>

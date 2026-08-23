@@ -1,0 +1,10 @@
+import React from 'react';
+import ComingSoon from '../../components/common/ComingSoon';
+
+export default function Masterclass() {
+  return (
+  <div className='min-h-screen flex items-center justify-center p-4'>
+    <ComingSoon/>
+    </div>
+  );
+}
