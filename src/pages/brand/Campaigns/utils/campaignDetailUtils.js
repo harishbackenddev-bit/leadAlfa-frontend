@@ -16,6 +16,7 @@ import {
 
 export const DETAIL_TABS = [
   { key: "overview", label: "Overview", icon: "layout" },
+    { key: "configure-creators", label: "Configure Creators", icon: "settings" }, // ← NEW
   { key: "proposals", label: "Proposals", icon: "file", badgeKey: "proposals" },
   { key: "creators", label: "Creators", icon: "users" },
   { key: "submissions", label: "Submissions", icon: "upload", badgeKey: "submissions" },
@@ -30,6 +31,7 @@ const FOCUS_TAB_MAP = {
   assets: "approved-assets",
   "approved-assets": "approved-assets",
   overview: "overview",
+    "configure-creators": "configure-creators", // ← NEW
 };
 
 export function resolveInitialTab({ searchTab, focusState }) {

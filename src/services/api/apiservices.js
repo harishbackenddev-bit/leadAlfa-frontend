@@ -252,6 +252,24 @@ export const createCampaign = async (campaignData) => {
   }
 };
 
+/**
+ * Publish campaign with escrow
+ * POST /api/campaigns/publish
+ */
+export const publishCampaignWithEscrow = async (campaignData) => {
+  try {
+    const response = await axiosInstance.post("/campaigns/publish", campaignData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    throw error.response?.data || error.message;
+  }
+};
+
 // Fetch all campaigns (for brand dashboard)
 export const getCampaigns = async ({ status, page, limit } = {}) => {
   try {
@@ -868,6 +886,79 @@ export const submitBrandTradeSafeDetails = async (payload) => {
     return response.data;
   } catch (error) {
     console.log(error);
+    throw error.response?.data || error.message;
+  }
+};
+
+
+// ========== TRADESAFE PAYMENT APIS ==========
+
+/**
+ * Get payment-ready creators for a campaign
+ * GET /api/tradesafe-payment/campaign/:campaignId/creators
+ */
+export const getCampaignPaymentCreators = async (campaignId) => {
+  try {
+    const response = await axiosInstance.get(`/tradesafe-payment/campaign/${campaignId}/creators`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching payment creators:", error);
+    throw error.response?.data || error.message;
+  }
+};
+
+/**
+ * Create escrow transactions for campaign
+ * POST /api/tradesafe-payment/campaign/:campaignId/create-escrow
+ */
+export const createEscrowTransactions = async (campaignId) => {
+  try {
+    const response = await axiosInstance.post(`/tradesafe-payment/campaign/${campaignId}/create-escrow`);
+    return response.data;
+  } catch (error) {
+    console.error("Error creating escrow transactions:", error);
+    throw error.response?.data || error.message;
+  }
+};
+
+/**
+ * Fund campaign transactions
+ * POST /api/tradesafe-payment/campaign/:campaignId/fund
+ */
+export const fundCampaignTransactions = async (campaignId) => {
+  try {
+    const response = await axiosInstance.post(`/tradesafe-payment/campaign/${campaignId}/fund`);
+    return response.data;
+  } catch (error) {
+    console.error("Error funding campaign:", error);
+    throw error.response?.data || error.message;
+  }
+};
+
+/**
+ * Get campaign payment status
+ * GET /api/tradesafe-payment/campaign/:campaignId/status
+ */
+export const getCampaignPaymentStatus = async (campaignId) => {
+  try {
+    const response = await axiosInstance.get(`/tradesafe-payment/campaign/${campaignId}/status`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching payment status:", error);
+    throw error.response?.data || error.message;
+  }
+};
+
+/**
+ * Get creator payment status
+ * GET /api/tradesafe-payment/creator/:creatorId/transactions
+ */
+export const getCreatorPaymentStatus = async (creatorId) => {
+  try {
+    const response = await axiosInstance.get(`/tradesafe-payment/creator/${creatorId}/transactions`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching creator payment status:", error);
     throw error.response?.data || error.message;
   }
 };

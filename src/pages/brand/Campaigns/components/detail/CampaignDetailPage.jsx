@@ -1,3 +1,4 @@
+// CampaignDetailPage.jsx
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams, useSearchParams, useLocation } from "react-router-dom";
@@ -29,7 +30,7 @@ import SubmissionsTab from "./SubmissionsTab";
 import FeedbackRevisionsTab from "./FeedbackRevisionsTab";
 import ContractsTab from "./ContractsTab";
 import CampaignActivityTab from "./CampaignActivityTab";
-
+import ConfigureCreatorsTab from "./tabs/ConfigureCreatorsTab";
 
 export default function CampaignDetailPage() {
   const { publicId, id } = useParams();
@@ -45,32 +46,61 @@ export default function CampaignDetailPage() {
 
   const [activeTab, setActiveTab] = useState(initialTab);
 
+  // ========== FETCH CAMPAIGN DETAIL ==========
   const { data: campaignResp, isLoading, isError } = useCampaign(campaignIdentifier);
 
-  const { data: allCampaigns = [] } = useQuery(getAllBrandCampaignsQueryOptions());
+  // ========== FETCH ALL CAMPAIGNS ==========
+  const { data: allCampaigns = [] } = useQuery({
+    ...getAllBrandCampaignsQueryOptions(),
+    enabled: true,
+  });
 
+  console.log('📊 campaignResp:', campaignResp);
+  console.log('📊 allCampaigns:', allCampaigns);
+
+  // ========== EXTRACT CAMPAIGN ==========
   const apiCampaign = useMemo(() => {
-    const base = campaignResp?.campaign ?? campaignResp ?? null;
-    if (!base) return null;
-    return enrichCampaignWithListStats(base, allCampaigns);
-  }, [campaignResp, allCampaigns]);
+    let campaign = null;
+    
+    if (campaignResp?.data) {
+      campaign = campaignResp.data;
+    } else if (campaignResp?.campaign) {
+      campaign = campaignResp.campaign;
+    } else if (campaignResp) {
+      campaign = campaignResp;
+    }
+    
+    console.log('📊 Extracted campaign:', campaign);
+    return campaign;
+  }, [campaignResp]);
 
-  const detail = useMemo(() => {
+  // ========== ENRICH CAMPAIGN ==========
+  const enrichedCampaign = useMemo(() => {
     if (!apiCampaign) return null;
-    return mergeCampaignDetail(apiCampaign, campaignIdentifier);
-  }, [apiCampaign, campaignIdentifier]);
+    console.log('📊 Enriching campaign:', apiCampaign);
+    return enrichCampaignWithListStats(apiCampaign, allCampaigns);
+  }, [apiCampaign, allCampaigns]);
+
+  console.log('📊 enrichedCampaign:', enrichedCampaign);
+
+  // ========== MERGE DETAIL ==========
+  const detail = useMemo(() => {
+    if (!enrichedCampaign) return null;
+    return mergeCampaignDetail(enrichedCampaign, campaignIdentifier);
+  }, [enrichedCampaign, campaignIdentifier]);
+
+  console.log('📊 detail:', detail);
 
   const campaignId = detail?.raw?.id || campaignIdentifier;
-  const hasValidCampaignId =
-    Boolean(detail) &&
-    Boolean(campaignId) &&
-    !Number.isNaN(Number(campaignId));
+  const hasValidCampaignId = Boolean(detail) && Boolean(campaignId) && !Number.isNaN(Number(campaignId));
 
+  // ========== FETCH APPLICANTS ==========
   const { data: applicantsResponse } = useQuery({
     ...getCreatorApplicationsQueryOptions(campaignId),
     enabled: hasValidCampaignId,
   });
 
+  // ========== DETAIL WITH ALERTS ==========
   const detailWithAlerts = useMemo(() => {
     if (!detail) return null;
     const messages = [...(detail.alertMessages || [])];
@@ -87,6 +117,7 @@ export default function CampaignDetailPage() {
     return { ...detail, alertMessages: messages };
   }, [detail, applicantsResponse, hasValidCampaignId]);
 
+  // ========== TAB HANDLING ==========
   const handleTabChange = useCallback(
     (tabKey) => {
       setActiveTab(tabKey);
@@ -111,6 +142,7 @@ export default function CampaignDetailPage() {
 
   const campaignPublicId = detailWithAlerts?.publicId || campaignIdentifier;
 
+  // ========== FETCH SUBMISSION STATS ==========
   const { data: submissionStatsResponse } = useQuery({
     ...getCampaignSubmissionStatsQueryOptions(campaignPublicId),
     enabled: Boolean(campaignPublicId),
@@ -121,12 +153,11 @@ export default function CampaignDetailPage() {
     enabled: Boolean(campaignPublicId),
   });
 
+  // ========== TAB BADGES ==========
   const tabBadges = useMemo(() => {
     if (!detailWithAlerts) return {};
 
     const badges = { ...detailWithAlerts.tabBadges };
-    // Only live API counts may show as tab badges. Dummy / supplemental
-    // counts (feedback, contracts, etc.) must never appear.
     delete badges.proposals;
     delete badges.submissions;
     delete badges.feedback;
@@ -141,8 +172,7 @@ export default function CampaignDetailPage() {
       }
     }
 
-    const pendingSubmissions =
-      submissionStatsResponse?.stats?.pendingReview ?? 0;
+    const pendingSubmissions = submissionStatsResponse?.stats?.pendingReview ?? 0;
     if (campaignPublicId && pendingSubmissions > 0) {
       badges.submissions = pendingSubmissions;
     }
@@ -164,6 +194,7 @@ export default function CampaignDetailPage() {
     submissionsListResponse,
   ]);
 
+  // ========== LOADING ==========
   if (isLoading && !detailWithAlerts) {
     return (
       <div className="space-y-4 p-4 md:p-7">
@@ -174,7 +205,9 @@ export default function CampaignDetailPage() {
     );
   }
 
+  // ========== ERROR ==========
   if (!detailWithAlerts) {
+    console.log('❌ No detailWithAlerts:', { detail, apiCampaign, campaignResp });
     return (
       <div className="py-12 text-center text-red-500">
         {isError
@@ -186,6 +219,7 @@ export default function CampaignDetailPage() {
 
   const editBlocked = Boolean(detailWithAlerts.hasApplications);
 
+  // ========== RENDER TAB CONTENT ==========
   const renderTabContent = () => {
     switch (activeTab) {
       case "overview":
@@ -193,6 +227,18 @@ export default function CampaignDetailPage() {
           <OverviewTab
             detail={detailWithAlerts}
             campaignPublicId={campaignPublicId}
+          />
+        );
+      case "configure-creators": // ← NEW TAB
+        return (
+          <ConfigureCreatorsTab
+            campaignId={campaignId}
+            campaignPublicId={campaignPublicId}
+            onCreatorsUpdated={() => {
+              // Refresh campaign details after creators update
+              // You can trigger a refetch here
+              console.log('🔄 Creators updated, refreshing...');
+            }}
           />
         );
       case "creators":

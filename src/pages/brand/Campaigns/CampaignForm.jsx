@@ -1,4 +1,3 @@
-// src/pages/brand/Campaigns/CampaignForm.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -23,7 +22,6 @@ import {
   SchedulingSection,
   AssetsSection,
 } from "./components/CampaignFormSections";
-import { CreatorSelectionSection } from "./components/CreatorSelectionSection";
 import { useCampaignForm } from "./hooks/useCampaignForm";
 import {
   resolveOptionValue,
@@ -34,7 +32,7 @@ import {
   resolveNumberCreators,
   firstCoercedFromApi,
 } from "./campaignFormHydrationUtils";
-import { getTradeSafeStatus } from "../../../services/api/apiservices";
+
 
 const inputClass =
   "bg-white h-[48px] px-[16px] border-[#e5e7eb] border-[0.8px] border-solid rounded-[12px] font-['Manrope:Regular',sans-serif] text-[14px] text-[#1e293b] placeholder:text-[rgba(30,41,59,0.5)] tracking-[-0.3px] outline-none focus:border-[#0353a4] transition-colors";
@@ -49,14 +47,6 @@ export default function CampaignForm({
   isReadOnly = false,
 }) {
   const navigate = useNavigate();
-  
-  // ========== TradeSafe States ==========
-  const [selectedCreators, setSelectedCreators] = useState([]);
-  const [tradeSafeStatus, setTradeSafeStatus] = useState(null);
-  const [isVerified, setIsVerified] = useState(false);
-  const [isLoadingStatus, setIsLoadingStatus] = useState(true);
-  // =====================================
-
   const {
     formData,
     setFormData,
@@ -82,30 +72,6 @@ export default function CampaignForm({
     moodboards: [null, null, null],
   });
 
-  // ========== Check TradeSafe Status on Load ==========
-  useEffect(() => {
-    const checkTradeSafeStatus = async () => {
-      setIsLoadingStatus(true);
-      try {
-        const response = await getTradeSafeStatus();
-        console.log("📊 TradeSafe Status:", response);
-        
-        if (response) {
-          setTradeSafeStatus(response.status);
-          setIsVerified(response.status === 'VERIFIED');
-        }
-      } catch (error) {
-        console.error('Error fetching TradeSafe status:', error);
-        setIsVerified(false);
-      } finally {
-        setIsLoadingStatus(false);
-      }
-    };
-    
-    checkTradeSafeStatus();
-  }, []);
-
-  // ========== Hydrate Form Data ==========
   useEffect(() => {
     if (!initialCampaignData) return;
 
@@ -138,17 +104,6 @@ export default function CampaignForm({
         null,
       moodboards: moodSlots,
     });
-
-    // Hydrate selected creators
-    if (campaign.creators && Array.isArray(campaign.creators)) {
-      setSelectedCreators(campaign.creators.map(c => ({
-        id: c.id,
-        name: c.name || c.creatorName || `Creator ${c.id}`,
-        email: c.email || '',
-        budget: c.budget || c.agreedAmount || 0,
-        tradeSafeStatus: c.tradeSafeStatus || 'PENDING',
-      })));
-    }
 
     const locationValue = resolveLocationValue(campaign.location);
     const usageRightsRaw =
@@ -247,7 +202,6 @@ export default function CampaignForm({
     setFormData((prev) => ({ ...prev, ...normalizedFormData }));
   }, [initialCampaignData, setFormData]);
 
-  // ========== Build Campaign Payload ==========
   const buildCampaignPayload = () => {
     const toPositiveInteger = (value) => {
       const raw = String(value ?? "").trim();
@@ -354,24 +308,6 @@ export default function CampaignForm({
         .join("\n");
     };
 
-    // ========== Build creators payload ==========
-    const creatorsPayload = selectedCreators.map(c => ({
-      id: c.id,
-      name: c.name || c.publicName || `Creator ${c.id}`,
-      email: c.email || '',
-      budget: c.budget || 0,
-      tradeSafeUserId: c.tradeSafeUserId,
-      tradeSafeStatus: c.tradeSafeStatus,
-      bankVerificationStatus: c.bankVerificationStatus,
-    }));
-
-    const totalBudget = selectedCreators.reduce((sum, c) => sum + (c.budget || 0), 0);
-    
-    console.log('📤 Selected Creators:', selectedCreators);
-    console.log('📤 Creators Payload:', creatorsPayload);
-    console.log('📤 Total Budget:', totalBudget);
-    // =============================================
-
     return {
       campaignTitle: formData.campaignTitle,
       deliverables: deliverablesLabel,
@@ -414,57 +350,14 @@ export default function CampaignForm({
         formData.moodboardSource === "url" ? normalizeUrl(formData.moodboardUrl) : "",
       coverImage,
       moodboards: moodboards.filter(Boolean),
-      // ========== Add creators and total budget ==========
-      creators: creatorsPayload,
-      totalBudget: totalBudget,
-      // ==================================================
     };
   };
 
-  // ========== Validate Campaign ==========
-  const validateCampaign = () => {
-    // Check if TradeSafe is verified
-    if (!isVerified) {
-      alert('⚠️ Your TradeSafe verification is pending. Please wait for verification before creating campaigns.');
-      return false;
-    }
-
-    // Check if creators are selected
-    if (selectedCreators.length === 0) {
-      alert('Please select at least one creator for the campaign.');
-      return false;
-    }
-
-    // Check if all creators have budgets
-    const invalidCreators = selectedCreators.filter(c => c.budget <= 0);
-    if (invalidCreators.length > 0) {
-      alert('Please set a budget for all selected creators.');
-      return false;
-    }
-
-    // Check if creators are verified
-    const unverifiedCreators = selectedCreators.filter(c => c.tradeSafeStatus !== 'VERIFIED');
-    if (unverifiedCreators.length > 0) {
-      alert(`The following creators are not verified for payouts: ${unverifiedCreators.map(c => c.name).join(', ')}`);
-      return false;
-    }
-
-    return true;
-  };
-
-  // ========== Handle Submit ==========
   const handleSubmit = (event) => {
     event.preventDefault();
     if (isReadOnly) return;
-    
-    if (!validateCampaign()) return;
     if (!validateForm()) return;
-
     const submissionData = buildCampaignPayload();
-    
-    console.log('📤 Final Submission Data:', submissionData);
-    console.log('📤 Creators in Submission:', submissionData.creators);
-    console.log('📤 Total Budget:', submissionData.totalBudget);
 
     if (externalSubmit) {
       return externalSubmit({
@@ -472,20 +365,10 @@ export default function CampaignForm({
         productImage: coverImage,
         moodboards: moodboards.find(Boolean) || null,
         moodboardFiles: moodboards.filter(Boolean),
-        selectedCreators: selectedCreators,
-        creators: selectedCreators.map(c => ({
-          id: c.id,
-          name: c.name || c.publicName || `Creator ${c.id}`,
-          email: c.email || '',
-          budget: c.budget || 0,
-          tradeSafeUserId: c.tradeSafeUserId,
-          tradeSafeStatus: c.tradeSafeStatus,
-        })),
-        totalBudget: selectedCreators.reduce((sum, c) => sum + (c.budget || 0), 0),
       });
     }
 
-    console.log("📤 Campaign form payload", submissionData);
+    console.log("Campaign form payload", submissionData);
   };
 
   const handleDiscard = () => navigate(-1);
@@ -495,7 +378,6 @@ export default function CampaignForm({
     formData,
     coverImage,
     moodboards,
-    selectedCreators,
   });
 
   const handleActionButton = ({ actionKey, payload, event }) => {
@@ -507,19 +389,6 @@ export default function CampaignForm({
     }
   };
 
-  // ========== Loading State ==========
-  if (isLoadingStatus) {
-    return (
-      <div className="min-h-screen bg-[#F3F4F6] flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent mx-auto"></div>
-          <p className="mt-4 text-gray-500">Checking TradeSafe status...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // ========== RENDER ==========
   return (
     <div className="min-h-screen bg-[#F3F4F6] px-5 py-8 sm:px-8 lg:px-12">
       <div className="mx-auto w-full max-w-[1880px]">
@@ -535,7 +404,10 @@ export default function CampaignForm({
 
         <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="text-lg font-semibold leading-none text-[#111827] md:text-2xl text-[24px] md:text-[28px] lg:text-[32px] leading-[1.3] md:leading-[48px] text-[#1f1f1f] tracking-[-0.8px] font-bold">
+            <h1 className="text-lg font-semibold leading-none text-[#111827]  md:text-2xl
+            
+             text-[24px] md:text-[28px] lg:text-[32px] leading-[1.3] md:leading-[48px] text-[#1f1f1f] tracking-[-0.8px] font-bold
+            ">
               {title}
             </h1>
             <p className="mt-3 text-sm text-[#718096] sm:text-sm">{subtitle}</p>
@@ -559,29 +431,11 @@ export default function CampaignForm({
               payload={getActionPayload()}
               onAction={handleActionButton}
               form="campaign-form"
-              disabled={isReadOnly || !isVerified}
+              disabled={isReadOnly}
               className=""
             />
           </div>
         </div>
-
-        {/* ========== TradeSafe Status Banner ========== */}
-        {!isVerified && (
-          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <div className="flex items-center gap-3">
-              <Sparkles className="h-5 w-5 text-yellow-600" />
-              <div>
-                <p className="text-sm font-medium text-yellow-800">
-                  ⏳ TradeSafe Verification Pending
-                </p>
-                <p className="text-xs text-yellow-700">
-                  Please wait for your TradeSafe verification to complete before creating campaigns.
-                  Current Status: {tradeSafeStatus || 'NOT_STARTED'}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
 
         <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 sm:p-7 lg:p-8">
           <form id="campaign-form" onSubmit={handleSubmit} className="space-y-8">
@@ -642,14 +496,6 @@ export default function CampaignForm({
               errors={errors}
             />
 
-            {/* ========== Creator Selection Section ========== */}
-            <CreatorSelectionSection
-              selectedCreators={selectedCreators}
-              setSelectedCreators={setSelectedCreators}
-              isBrandVerified={isVerified}
-              errors={errors}
-            />
-
             <div className="flex flex-wrap items-center justify-start gap-3 pt-3">
               <ModuleActionButton
                 label="Discard"
@@ -666,7 +512,7 @@ export default function CampaignForm({
                 actionKey="publish"
                 payload={getActionPayload()}
                 onAction={handleActionButton}
-                disabled={isReadOnly || !isVerified}
+                disabled={isReadOnly}
               />
             </div>
           </form>

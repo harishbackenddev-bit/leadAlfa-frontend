@@ -1,3 +1,4 @@
+// ViewAllCampaigns.jsx
 import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -110,10 +111,27 @@ const ViewAllCampaigns = () => {
     error,
   } = useQuery(getAllBrandCampaignsQueryOptions());
 
-  const normalizedCampaigns = useMemo(
-    () => normalizeCampaignList(allApiCampaigns),
-    [allApiCampaigns]
-  );
+  // ========== FIX: Handle response structure ==========
+  const normalizedCampaigns = useMemo(() => {
+    // If allApiCampaigns has a data property with campaigns
+    let campaigns = [];
+    
+    if (allApiCampaigns?.data?.campaigns) {
+      campaigns = allApiCampaigns.data.campaigns;
+    } else if (allApiCampaigns?.campaigns) {
+      campaigns = allApiCampaigns.campaigns;
+    } else if (Array.isArray(allApiCampaigns)) {
+      campaigns = allApiCampaigns;
+    } else if (allApiCampaigns?.data && Array.isArray(allApiCampaigns.data)) {
+      campaigns = allApiCampaigns.data;
+    }
+    
+    console.log('📊 Campaigns extracted:', campaigns);
+    console.log('📊 Campaigns count:', campaigns.length);
+    
+    return normalizeCampaignList(campaigns);
+  }, [allApiCampaigns]);
+  // ================================================
 
   const tabCounts = useMemo(
     () => countCampaignsByTab(normalizedCampaigns),
@@ -258,6 +276,14 @@ const ViewAllCampaigns = () => {
   const sortLabel =
     SORT_OPTIONS.find((o) => o.key === sortKey)?.label ?? "Latest Created";
 
+  // ========== DEBUG: Log campaigns ==========
+  useEffect(() => {
+    console.log('📊 normalizedCampaigns:', normalizedCampaigns);
+    console.log('📊 filteredCampaigns:', filteredCampaigns);
+    console.log('📊 paginatedCampaigns:', paginatedCampaigns);
+  }, [normalizedCampaigns, filteredCampaigns, paginatedCampaigns]);
+  // ========================================
+
   return (
     <>
       <Modal
@@ -293,7 +319,7 @@ const ViewAllCampaigns = () => {
             <button
               type="button"
               onClick={handleCreateCampaign}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-lg btn-gradient px-4 py-2.5 text-sm font-semibold text-white shadow-[0_4px_12px_rgba(30,96,219,0.35)]  sm:w-auto lg:shrink-0"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-lg btn-gradient px-4 py-2.5 text-sm font-semibold text-white shadow-[0_4px_12px_rgba(30,96,219,0.35)] sm:w-auto lg:shrink-0"
             >
               <Plus className="h-4 w-4" />
               Create Campaign

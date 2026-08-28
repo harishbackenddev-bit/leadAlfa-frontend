@@ -1,3 +1,4 @@
+// CampaignDetailTabs.jsx
 import React from "react";
 import {
   CheckCircle2,
@@ -8,6 +9,7 @@ import {
   Upload,
   Users,
   Activity,
+  Settings, // ← NEW
 } from "lucide-react";
 import { DETAIL_TABS } from "../../utils/campaignDetailUtils";
 
@@ -20,6 +22,7 @@ const TAB_ICONS = {
   contract: ScrollText,
   check: CheckCircle2,
   activity: Activity,
+  settings: Settings, // ← NEW
 };
 
 export default function CampaignDetailTabs({ activeTab, onChange, tabBadges = {} }) {

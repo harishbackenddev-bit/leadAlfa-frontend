@@ -31,14 +31,32 @@ export default function Campaigns() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const { hasApplied } = useAppliedCampaigns();
+  const { hasApplied, appliedCampaignIds } = useAppliedCampaigns();
 
   useEffect(() => {
     const fetchCampaigns = async () => {
       try {
         setLoading(true);
         const response = await getActiveCampaigns();
-        setCampaigns(response.campaigns || []);
+        console.log("Full API Response:", response);
+        
+        // The API might return campaigns in different structures
+        let campaignsData = [];
+        if (response && response.campaigns) {
+          campaignsData = response.campaigns;
+        } else if (response && response.data && response.data.campaigns) {
+          campaignsData = response.data.campaigns;
+        } else if (Array.isArray(response)) {
+          campaignsData = response;
+        } else if (response && response.data && Array.isArray(response.data)) {
+          campaignsData = response.data;
+        } else {
+          console.warn("Unexpected response structure:", response);
+          campaignsData = [];
+        }
+        
+        console.log("Campaigns data:", campaignsData);
+        setCampaigns(campaignsData);
         setError(null);
       } catch (err) {
         console.error("Error fetching campaigns:", err);
@@ -76,54 +94,133 @@ export default function Campaigns() {
     setCurrentPage(1);
   };
 
-  const allCampaigns = useMemo(
-    () => campaigns.map(mapCampaignToGridCard),
-    [campaigns]
-  );
+  // FIXED: Map campaigns with proper field names from your API
+  const allCampaigns = useMemo(() => {
+    if (!campaigns || campaigns.length === 0) {
+      console.log("No campaigns to map");
+      return [];
+    }
+
+    console.log("Mapping campaigns:", campaigns);
+
+    const mapped = campaigns.map((campaign) => {
+      // Log each campaign to see its structure
+      console.log("Campaign raw data:", campaign);
+      
+      // Try to extract a title from various possible field names
+      const title = campaign.campaignTitle || 
+                   campaign.title || 
+                   campaign.name || 
+                   campaign.biz || // From your API response
+                   campaign.companyName ||
+                   "Untitled Campaign";
+      
+      // Try to extract tags from various possible field names
+      let tags = [];
+      if (campaign.tags) {
+        tags = campaign.tags;
+      } else if (campaign.categories) {
+        tags = campaign.categories;
+      } else if (campaign.platform) {
+        tags = campaign.platform;
+      } else if (campaign.deliverables) {
+        tags = [campaign.deliverables];
+      } else if (campaign.biz) {
+        // If no tags, use biz as a tag
+        tags = [campaign.biz];
+      }
+      
+      // Ensure tags is an array
+      if (!Array.isArray(tags)) {
+        tags = [String(tags)];
+      }
+      
+      const mappedCampaign = {
+        id: campaign.id || campaign.campaignId || Math.random(),
+        title: title,
+        tags: tags,
+        brandId: campaign.brandId || campaign.brandId,
+        publicId: campaign.publicId,
+        deliverables: campaign.deliverables,
+        platform: campaign.platform,
+        location: campaign.location,
+        // Keep all original data for debugging
+        _original: campaign
+      };
+      
+      console.log(`Mapped campaign ${mappedCampaign.id}:`, mappedCampaign);
+      return mappedCampaign;
+    });
+    
+    console.log("All mapped campaigns:", mapped);
+    return mapped;
+  }, [campaigns]);
 
   const filteredCampaigns = useMemo(() => {
-    // Hide every campaign the creator has already applied to (pending or
-    // beyond) — they live in My Jobs now and shouldn't reappear in Explore.
-    let result = allCampaigns.filter((c) => !hasApplied(c.id));
-    result = filterGridCampaigns(result, searchQuery);
-
+    console.log("Filtering campaigns...");
+    let result = [...allCampaigns];
+    console.log("Step 1 - All campaigns:", result.length);
+    
+    // Remove applied campaigns
+    if (appliedCampaignIds && appliedCampaignIds.length > 0) {
+      console.log("Applied IDs:", appliedCampaignIds);
+      result = result.filter((c) => {
+        const isApplied = hasApplied(c.id);
+        console.log(`Campaign ${c.id} "${c.title}" applied: ${isApplied}`);
+        return !isApplied;
+      });
+      console.log("Step 2 - After removing applied:", result.length);
+    }
+    
+    // Apply search filter
+    if (searchQuery && searchQuery.trim() !== "") {
+      const query = searchQuery.toLowerCase().trim();
+      result = result.filter((campaign) => {
+        const title = (campaign.title || "").toLowerCase();
+        const tags = (campaign.tags || []).join(" ").toLowerCase();
+        const match = title.includes(query) || tags.includes(query);
+        console.log(`Search match for "${campaign.title}": ${match}`);
+        return match;
+      });
+      console.log("Step 3 - After search filter:", result.length);
+    }
+    
+    // Apply niche filter
     if (selectedNiches.length > 0) {
-      result = result.filter((campaign) =>
-        campaign.tags.some((tag) =>
-          selectedNiches.some((niche) =>
-            tag.toLowerCase().includes(niche.toLowerCase())
-          )
-        )
-      );
+      console.log("Filtering by niches:", selectedNiches);
+      result = result.filter((campaign) => {
+        const tags = (campaign.tags || []).map(t => String(t).toLowerCase());
+        return selectedNiches.some(niche => 
+          tags.some(tag => tag.includes(niche.toLowerCase()))
+        );
+      });
+      console.log("Step 4 - After niche filter:", result.length);
     }
-
+    
+    // Apply category filter
     if (selectedCategories.length > 0) {
-      result = result.filter((campaign) =>
-        campaign.tags.some((tag) =>
-          selectedCategories.some((category) =>
-            tag.toLowerCase().includes(category.toLowerCase())
-          )
-        )
-      );
+      console.log("Filtering by categories:", selectedCategories);
+      result = result.filter((campaign) => {
+        const tags = (campaign.tags || []).map(t => String(t).toLowerCase());
+        return selectedCategories.some(category => 
+          tags.some(tag => tag.includes(category.toLowerCase()))
+        );
+      });
+      console.log("Step 5 - After category filter:", result.length);
     }
-
+    
+    console.log("Final filtered campaigns:", result);
     return result;
-  }, [allCampaigns, searchQuery, selectedNiches, selectedCategories, hasApplied]);
+  }, [allCampaigns, searchQuery, selectedNiches, selectedCategories, hasApplied, appliedCampaignIds]);
 
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, selectedNiches, selectedCategories]);
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredCampaigns.length / ITEMS_PER_PAGE)
-  );
+  const totalPages = Math.max(1, Math.ceil(filteredCampaigns.length / ITEMS_PER_PAGE));
   const indexOfLastCampaign = currentPage * ITEMS_PER_PAGE;
   const indexOfFirstCampaign = indexOfLastCampaign - ITEMS_PER_PAGE;
-  const currentCampaigns = filteredCampaigns.slice(
-    indexOfFirstCampaign,
-    indexOfLastCampaign
-  );
+  const currentCampaigns = filteredCampaigns.slice(indexOfFirstCampaign, indexOfLastCampaign);
 
   const handleApplyNow = (campaignId) => {
     navigate(`/creator/campaigns/${campaignId}/apply`);
@@ -185,6 +282,25 @@ export default function Campaigns() {
   return (
     <div className="min-h-screen bg-[#F9FAFB]">
       <div className="mx-auto max-w-[1920px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+        {/* Debug info - remove after fixing */}
+        <div className="mb-4 rounded-lg border border-blue-300 bg-blue-50 p-3 text-sm">
+          <details>
+            <summary className="cursor-pointer font-medium text-blue-800">
+              Debug Info: {campaigns.length} total campaigns, {allCampaigns.length} mapped, {filteredCampaigns.length} visible
+            </summary>
+            <div className="mt-2">
+              <p><strong>Raw API Response:</strong></p>
+              <pre className="max-h-40 overflow-auto rounded bg-gray-100 p-2 text-xs">
+                {JSON.stringify(campaigns.slice(0, 2), null, 2)}
+              </pre>
+              <p className="mt-2"><strong>Mapped Campaigns:</strong></p>
+              <pre className="max-h-40 overflow-auto rounded bg-gray-100 p-2 text-xs">
+                {JSON.stringify(allCampaigns.slice(0, 2), null, 2)}
+              </pre>
+            </div>
+          </details>
+        </div>
+
         <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h1 className="font-anton text-xl font-extrabold text-gray-900 sm:text-2xl lg:text-3xl">
@@ -192,6 +308,10 @@ export default function Campaigns() {
             </h1>
             <p className="mt-1 text-sm text-gray-500 sm:text-base">
               Explore campaigns and hire as per your convenience
+            </p>
+            <p className="mt-1 text-xs text-gray-400">
+              {allCampaigns.length} total campaigns · {filteredCampaigns.length} visible
+              {appliedCampaignIds?.length > 0 && ` · ${appliedCampaignIds.length} applied`}
             </p>
           </div>
 
@@ -241,8 +361,7 @@ export default function Campaigns() {
                     d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
                   />
                 </svg>
-                {(selectedNiches.length > 0 ||
-                  selectedCategories.length > 0) && (
+                {(selectedNiches.length > 0 || selectedCategories.length > 0) && (
                   <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-xs text-white">
                     {selectedNiches.length + selectedCategories.length}
                   </span>
@@ -350,9 +469,28 @@ export default function Campaigns() {
 
         {filteredCampaigns.length === 0 ? (
           <div className="py-12 text-center">
-            <p className="text-lg text-gray-500">
-              No active campaigns available at the moment.
-            </p>
+            {allCampaigns.length > 0 ? (
+              <>
+                <p className="text-lg text-gray-500">
+                  No campaigns match your current filters.
+                </p>
+                <p className="mt-2 text-sm text-gray-400">
+                  {allCampaigns.length} total campaigns available
+                  {appliedCampaignIds?.length > 0 && `, ${appliedCampaignIds.length} you've applied to`}
+                </p>
+                <button
+                  type="button"
+                  onClick={clearAllFilters}
+                  className="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+                >
+                  Clear All Filters
+                </button>
+              </>
+            ) : (
+              <p className="text-lg text-gray-500">
+                No active campaigns available at the moment.
+              </p>
+            )}
           </div>
         ) : (
           <>
