@@ -15,6 +15,8 @@ export default function ConfigureCreatorsTab({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [checkoutLink, setCheckoutLink] = useState(null);
+  const [paymentOpened, setPaymentOpened] = useState(false);
 
   // ========== FETCH APPLICANTS ==========
   const { data: applicantsData, isLoading: isLoadingApplicants, refetch } = useQuery({
@@ -86,7 +88,17 @@ export default function ConfigureCreatorsTab({
     }
   }, [applicantsData]);
 
-  // ========== CREATE ESCROW TRANSACTIONS ==========
+  // ============================================================
+  // ✅ OPEN PAYMENT IN NEW TAB
+  // ============================================================
+  const openPaymentInNewTab = (link) => {
+    console.log('🔗 Opening payment in new tab:', link);
+    window.open(link, '_blank', 'noopener,noreferrer');
+  };
+
+  // ============================================================
+  // ✅ HANDLE CREATE ESCROW
+  // ============================================================
   const handleCreateEscrow = async () => {
     if (creators.length === 0) {
       setError("No creators to process");
@@ -95,19 +107,50 @@ export default function ConfigureCreatorsTab({
 
     setIsProcessing(true);
     setError("");
+    setPaymentOpened(false);
 
     try {
       // Call API to create escrow transactions
       const response = await createEscrowTransactions(campaignId);
-      console.log('✅ Escrow transactions created:', response);
+      console.log('✅ Full API Response:', response);
 
-      if (response.success) {
-        // Show success
-        alert(`✅ Escrow transactions created for ${response.data.creatorCount} creators!`);
-        
-        // Refetch to update status
-        refetch();
+      let data = null;
+      
+      if (response.success && response.data) {
+        data = response.data;
+      } else if (response.success) {
+        data = response;
+      } else {
+        throw new Error(response.message || 'Failed to create escrow');
       }
+
+      console.log('✅ Data from response:', data);
+
+      const link = data.checkoutLink;
+      
+      if (link) {
+        console.log('✅ Checkout link received:', link);
+        setCheckoutLink(link);
+        setPaymentOpened(true);
+        
+        // ✅ Show alert and open payment
+        alert(
+          `✅ Escrow created for ${data.creatorCount} creators!\n` +
+          `Total Amount: R${data.grandTotal?.toFixed(2)}\n\n` +
+          `Payment page will open in a new tab...`
+        );
+        
+        // ✅ Open in NEW TAB after alert
+        setTimeout(() => {
+          openPaymentInNewTab(link);
+        }, 500);
+        
+      } else {
+        console.warn('⚠️ No checkout link in response');
+        setError("No payment link received. Please try again.");
+      }
+
+      refetch();
 
     } catch (err) {
       console.error('Error creating escrow:', err);
@@ -132,6 +175,17 @@ export default function ConfigureCreatorsTab({
     return (
       <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
         {error}
+        {checkoutLink && !paymentOpened && (
+          <button
+            onClick={() => {
+              openPaymentInNewTab(checkoutLink);
+              setPaymentOpened(true);
+            }}
+            className="ml-3 px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"
+          >
+            Open Payment
+          </button>
+        )}
       </div>
     );
   }
@@ -180,11 +234,29 @@ export default function ConfigureCreatorsTab({
                 Creating Escrow...
               </span>
             ) : (
-              "Create Escrow"
+              "Create Escrow & Pay"
             )}
           </button>
         </div>
       </div>
+
+      {/* ========== CHECKOUT LINK STATUS ========== */}
+      {checkoutLink && paymentOpened && (
+        <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+          <p className="text-sm text-green-700 font-medium">✅ Payment page opened in new tab</p>
+          <p className="text-xs text-green-600 mt-1">
+            If payment page didn't open, click here: 
+            <a 
+              href={checkoutLink} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="ml-1 text-blue-600 underline hover:text-blue-800"
+            >
+              {checkoutLink}
+            </a>
+          </p>
+        </div>
+      )}
 
       {/* ========== CREATOR LIST ========== */}
       <div className="space-y-3">
