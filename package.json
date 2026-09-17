@@ -5,8 +5,6 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "sync:proxy": "node scripts/generate-proxy-config.mjs",
-    "prebuild": "npm run sync:proxy",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
