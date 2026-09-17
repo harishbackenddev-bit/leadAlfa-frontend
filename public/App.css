@@ -1,0 +1,103 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap");
+
+* {
+  box-sizing: border-box;
+  font-family: "Manrope", ui-sans-serif, system-ui, sans-serif;
+}
+
+.btn-gradient{
+  background: #0C7BB3;
+  color: white;
+}
+
+.text-gradient{
+  color: #0C7BB3;
+}
+
+.border-gradient{
+  border-color: #0C7BB3;
+}
+/* Common Swiper Buttons */
+
+.carousel {
+  position: relative;
+  padding: 40px 20px;
+  
+  box-sizing: border-box;
+  margin: 0 5vw;
+}
+
+.swiper-button-prev-custom,
+.swiper-button-next-custom {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+  opacity: 1;
+}
+
+.swiper-button-prev-custom:hover,
+.swiper-button-next-custom:hover {
+  opacity: 0.8;
+}
+
+/* Disabled buttons - controlled by Swiper adding .swiper-button-disabled */
+.swiper-button-prev-custom.swiper-button-disabled,
+.swiper-button-next-custom.swiper-button-disabled {
+  opacity: 0.2 !important;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Left Button Specific */
+.swiper-button-prev-custom {
+  left: -20px;
+}
+
+/* Right Button Specific */
+.swiper-button-next-custom {
+  right: -20px;
+}
+
+.swiper-button-prev-custom svg,
+.swiper-button-next-custom svg {
+  width: 30px;
+  height: 30px;
+  transition: filter 0.3s ease;
+}
+
+/* On hover – darken the button fill */
+.swiper-button-prev-custom:hover svg path:first-child,
+.swiper-button-next-custom:hover svg path:first-child {
+  fill-opacity: 0.8;
+}
+
+
+/* Custom thin scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px; /* thin */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f5f5f5; /* light background */
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #6c95e1; /* your blue theme */
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #6c95e1; /* darker blue on hover */
+}
+
+/* Firefox support */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #6c95e1 #f5f5f5;
+}
+
+/* Admin Request Table (AntD) style overrides */

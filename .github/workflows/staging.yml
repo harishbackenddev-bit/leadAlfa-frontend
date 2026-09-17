@@ -1,0 +1,26 @@
+name: Deploy Frontend Staging
+
+on:
+  push:
+    branches: [staging]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASS }}
+          port: 22
+          script: |
+            bash -lc '
+              cd /var/www/creatrend-html/staging-creatrend
+              git checkout staging
+              git pull origin staging
+              docker-compose down
+              docker-compose build
+              docker-compose up -d
+            '

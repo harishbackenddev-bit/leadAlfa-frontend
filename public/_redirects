@@ -1,0 +1,3 @@
+# Auto-generated — do not edit. Run: npm run sync:proxy
+/wp-json/*  https://blogs.creatrend.co.za/wp-json/:splat  200!
+/wp-content/*  https://blogs.creatrend.co.za/wp-content/:splat  200!
