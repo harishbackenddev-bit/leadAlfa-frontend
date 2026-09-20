@@ -1286,7 +1286,18 @@ export const updateUserFeedback = async (publicId, payload) => {
 // ============================================================
 // TradeSafe Campaign Funding APIs
 // ============================================================
+export const getEstimatedFee = async (campaignId) => {
+  try {
+    const response = await axiosInstance.get(
+      `/tradesafe-payment/campaign/${campaignId}/estimated-fee`
+    );
+    return response.data;
+  } catch (error) {
+    throwContactRequestError(error);
+  }
+};
 
+// ✅ Fund campaign (no payment method payload)
 export const fundCampaign = async (campaignId) => {
   try {
     const response = await axiosInstance.post(
@@ -1297,6 +1308,7 @@ export const fundCampaign = async (campaignId) => {
     throwContactRequestError(error);
   }
 };
+
 
 export const simulateFunded = async (campaignId) => {
   try {
@@ -1415,6 +1427,19 @@ export const getCreatorTransactions = async (params = {}) => {
     const response = await axiosInstance.get(
       `/tradesafe-payment/creator/transactions`,
       { params }
+    );
+    return response.data;
+  } catch (error) {
+    throwContactRequestError(error);
+  }
+};
+
+// ✅ Cancel creator escrow
+export const cancelCreatorEscrow = async (campaignId, payload) => {
+  try {
+    const response = await axiosInstance.post(
+      `/tradesafe-payment/campaign/${campaignId}/cancel-creator`,
+      payload
     );
     return response.data;
   } catch (error) {

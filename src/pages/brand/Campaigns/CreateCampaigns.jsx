@@ -6,20 +6,19 @@ import {
   updateCampaignByPublicId,
   publishCampaign,
   fundCampaign,
-  simulateFunded,
+  // ❌ simulateFunded,   // comment out — real webhook confirms
 } from "../../../services/api/apiservices";
 import { invalidateCampaigns } from "../../../services/tanstack/queryService";
 import {
   buildCampaignFormData,
   getApiErrorMessage,
 } from "./utils/campaignFormPayload";
-import {
-  normalizeCampaignSaveResponse,
-} from "./utils/campaignApiMappers";
+import { normalizeCampaignSaveResponse } from "./utils/campaignApiMappers";
 
 export default function CreateCampaigns() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [fundingQuote, setFundingQuote] = useState(null);
 
   const handleSaveCampaign = async ({
     formData,
@@ -35,7 +34,9 @@ export default function CreateCampaigns() {
 
     const response = normalizeCampaignSaveResponse(rawResponse);
     if (!response?.campaign) {
-      throw new Error(getApiErrorMessage(rawResponse) || "Failed to save campaign.");
+      throw new Error(
+        getApiErrorMessage(rawResponse) || "Failed to save campaign."
+      );
     }
 
     return response;
@@ -46,30 +47,31 @@ export default function CreateCampaigns() {
   };
 
   const handlePublishCampaign = async (campaignPublicId) => {
+    console.log("🚀 PUBLISH CLICKED (Create)");
+    console.log("   campaignPublicId:", campaignPublicId);
+    console.log("   fundingQuote:", fundingQuote);
+
     if (isSubmitting) return;
+
+    if (!fundingQuote) {
+      throw new Error("Please wait for the fee estimate to load");
+    }
+
     setIsSubmitting(true);
 
     try {
-      // STEP 1: Fund campaign wallet
+      // STEP 1: Fund campaign (no payment method — TradeSafe handles it)
       const fundRes = await fundCampaign(campaignPublicId);
       const fundData = fundRes?.data?.success ? fundRes.data : fundRes;
 
       const walletUrl = fundData?.fundingBatch?.walletDepositUrl;
       if (!walletUrl) throw new Error("No wallet deposit link received.");
 
-      // Open payment page
       window.open(walletUrl, "_blank", "noopener,noreferrer");
 
-      // STEP 2: Sandbox — simulate funding
-      if (process.env.NODE_ENV !== "production") {
-        try {
-          await simulateFunded(campaignPublicId);
-        } catch (simErr) {
-          console.warn("Simulate failed:", simErr.message);
-        }
-      }
+      // ❌ REMOVED: simulateFunded — real webhook confirms
 
-      // STEP 3: Publish
+      // STEP 2: Publish (only if funds received)
       const response = await publishCampaign(campaignPublicId);
       if (!response?.campaignPublicId && !response?.invoicePublicId) {
         throw new Error(response?.message || "Failed to publish campaign.");
@@ -93,6 +95,8 @@ export default function CreateCampaigns() {
       onSaveSuccess={handleSaveSuccess}
       onPublishCampaign={handlePublishCampaign}
       isSubmitting={isSubmitting}
+  fundingQuote={fundingQuote}
+  onQuoteChange={setFundingQuote}
     />
   );
 }

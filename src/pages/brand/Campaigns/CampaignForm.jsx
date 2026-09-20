@@ -63,6 +63,8 @@ export default function CampaignForm({
   initialStep = 1,
   isReadOnly = false,
   isSubmitting = false,
+  fundingQuote,
+  onQuoteChange,
 }) {
   const navigate = useNavigate();
   const safeInitialStep = Math.max(1, Math.min(initialStep, CAMPAIGN_CREATE_STEPS.length));
@@ -216,7 +218,7 @@ export default function CampaignForm({
         resolveOptionValue(
           selectOptions.toneVoice,
           campaign?.creativeDirection?.scriptingApproach ||
-            campaign?.creativeDirection?.toneVoice
+          campaign?.creativeDirection?.toneVoice
         ) || "",
       campaignStarts: toInputDate(campaign.campaignStarts),
       applicationDeadline: toInputDate(campaign.applicationDeadline),
@@ -478,7 +480,14 @@ export default function CampaignForm({
           />
         );
       case "review":
-        return <StepReviewPublish formData={formData} invoice={invoice} />;
+        return (
+          <StepReviewPublish
+            formData={formData}
+            invoice={invoice}
+            campaignPublicId={campaignPublicId}
+            onQuoteChange={onQuoteChange}   // ✅ Add
+          />
+        );
       default:
         return null;
     }
@@ -618,7 +627,8 @@ export default function CampaignForm({
             isPublishing={isSubmitting}
             isSaving={isSaving}
             campaignSaved={Boolean(campaignPublicId)}
-            hasPaymentMethod={false}
+            hasPaymentMethod={Boolean(fundingQuote)}
+            fundingQuote={fundingQuote}    // ✅ Pass quote, not handler
           />
         </div>
       </div>

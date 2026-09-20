@@ -4,6 +4,7 @@ import authRoutes from "./authRoutes";
 import brandRoutes from "./brandRoutes";
 import creatorRoutes from "./creatorRoutes";
 import adminRoutes from "./adminRoutes";
+import paymentRoutes from "./paymentRoutes";
 
 const routes = [
   ...authRoutes,
@@ -11,6 +12,7 @@ const routes = [
   ...brandRoutes,
   ...creatorRoutes,
   ...adminRoutes,
+  ...paymentRoutes,
   // Fallback route: render layout for unknown routes instead of full 404 page
   {
     path: "*",

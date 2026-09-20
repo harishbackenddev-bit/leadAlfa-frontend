@@ -27,6 +27,9 @@ export default function EditCampaigns() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedbackModal, setFeedbackModal] = useState(null);
 
+  // ✅ Add funding quote state
+  const [fundingQuote, setFundingQuote] = useState(null);
+
   const closeFeedbackModal = useCallback(() => setFeedbackModal(null), []);
 
   const campaignIdentifier =
@@ -80,43 +83,46 @@ export default function EditCampaigns() {
     invalidateCampaigns();
   };
 
-  const handlePublishCampaign = async (campaignPublicId) => {
-    if (isSubmitting) return;
-    setIsSubmitting(true);
+  // ✅ Updated with payment method
+const handlePublishCampaign = async (campaignPublicId) => {
+  console.log("🚀 PUBLISH CLICKED (Edit)");
 
-    try {
-      // STEP 1: Fund campaign wallet
-      const fundRes = await fundCampaign(campaignPublicId);
-      const fundData = fundRes?.data?.success ? fundRes.data : fundRes;
-      const walletUrl = fundData?.fundingBatch?.walletDepositUrl;
+  if (isSubmitting) return;
 
-      if (!walletUrl) throw new Error("No wallet deposit link received.");
-      window.open(walletUrl, "_blank", "noopener,noreferrer");
+  if (!fundingQuote) {
+    throw new Error("Please wait for the fee estimate to load");
+  }
 
-      // STEP 2: Sandbox simulate
-      if (process.env.NODE_ENV !== "production") {
-        try { await simulateFunded(campaignPublicId); } catch (e) { console.warn(e); }
-      }
+  setIsSubmitting(true);
 
-      // STEP 3: Publish
-      const response = await publishCampaign(campaignPublicId);
-      if (!response?.campaignPublicId && !response?.invoicePublicId) {
-        throw new Error(response?.message || "Failed to publish campaign.");
-      }
+  try {
+    const fundRes = await fundCampaign(campaignPublicId);
+    const fundData = fundRes?.data?.success ? fundRes.data : fundRes;
+    const walletUrl = fundData?.fundingBatch?.walletDepositUrl;
 
-      invalidateCampaigns();
-      setFeedbackModal({
-        type: "success",
-        title: "Campaign published",
-        message: "Your campaign is funded and live. You'll be redirected shortly.",
-      });
-      window.setTimeout(() => navigate("/brand/campaigns"), 1800);
-    } catch (error) {
-      throw new Error(getApiErrorMessage(error));
-    } finally {
-      setIsSubmitting(false);
+    if (!walletUrl) throw new Error("No wallet deposit link received.");
+    window.open(walletUrl, "_blank", "noopener,noreferrer");
+
+    // ❌ REMOVED: simulateFunded
+
+    const response = await publishCampaign(campaignPublicId);
+    if (!response?.campaignPublicId && !response?.invoicePublicId) {
+      throw new Error(response?.message || "Failed to publish campaign.");
     }
-  };
+
+    invalidateCampaigns();
+    setFeedbackModal({
+      type: "success",
+      title: "Campaign published",
+      message: "Your campaign is funded and live.",
+    });
+    window.setTimeout(() => navigate("/brand/campaigns"), 1800);
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error));
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const handleFinalSave = async (args) => {
     setIsSubmitting(true);
@@ -192,6 +198,9 @@ export default function EditCampaigns() {
         onPublishCampaign={isCashDraft && !isEditLocked ? handlePublishCampaign : undefined}
         onFinalSave={openReviewStep ? undefined : handleFinalSave}
         isSubmitting={isSubmitting}
+        // ✅ Pass quote state
+        fundingQuote={fundingQuote}
+        onQuoteChange={setFundingQuote}
       />
     </>
   );
