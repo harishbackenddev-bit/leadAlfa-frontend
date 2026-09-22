@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo, useState, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Eye, Lock, CheckCircle2, Loader2 } from "lucide-react";
-import { Button } from "../../../../../components/ui/button";
+import { Eye, CheckCircle2 } from "lucide-react";
 import {
   approveSubmissionMutation,
   getCampaignSubmissionStatsQueryOptions,
@@ -27,9 +26,8 @@ import {
 import ErrorState from "../../../../../components/common/ErrorState";
 import { SUBMISSION_STATUS } from "../../utils/submissionUtils";
 
-// ✅ Statuses that mean "already funded/released"
+// ✅ Statuses that mean "already released"
 const RELEASED_STATUSES = ["PAYOUT_TRIGGERED", "RELEASED", "COMPLETED"];
-const FUNDED_STATUSES = ["FUNDED", ...RELEASED_STATUSES];
 
 function applyOptimisticStatus(detail, status) {
   if (!detail || !status) return detail;
@@ -66,7 +64,6 @@ export default function SubmissionsTab({ campaignPublicId, campaignId }) {
   const { showNotification } = useNotification();
   const [activeSubmissionKey, setActiveSubmissionKey] = useState(null);
   const [optimisticById, setOptimisticById] = useState({});
-  const [releasingId, setReleasingId] = useState(null);
   const [releasedIds, setReleasedIds] = useState({});
   const [escrowMap, setEscrowMap] = useState({});
 
@@ -91,7 +88,7 @@ export default function SubmissionsTab({ campaignPublicId, campaignId }) {
   });
 
   // ============================================================
-  // ✅ ESCROW / PAYMENT STATUS
+  // ESCROW / PAYMENT STATUS
   // ============================================================
   const { data: paymentStatusResponse, refetch: refetchPaymentStatus } = useQuery({
     queryKey: ["campaign-payment-status", campaignId || campaignPublicId],
@@ -100,7 +97,6 @@ export default function SubmissionsTab({ campaignPublicId, campaignId }) {
     staleTime: 30 * 1000,
   });
 
-  // ✅ Build escrow map: creatorId → transaction
   useEffect(() => {
     const data = paymentStatusResponse?.data || paymentStatusResponse;
     if (!data?.transactions) return;
@@ -110,8 +106,6 @@ export default function SubmissionsTab({ campaignPublicId, campaignId }) {
       map[tx.creatorId] = tx;
     });
     setEscrowMap(map);
-
-    console.log("📊 Escrow map:", map);
   }, [paymentStatusResponse]);
 
   const submissions = useMemo(() => {
@@ -194,20 +188,65 @@ export default function SubmissionsTab({ campaignPublicId, campaignId }) {
   );
 
   // ============================================================
-  // APPROVE
+  // ✅ AUTO-RELEASE ON APPROVE
   // ============================================================
   const { mutate: approve, isPending: isApproving } = useMutation({
     ...approveSubmissionMutation(campaignPublicId),
     onSuccess: async (_data, submissionPublicId) => {
+      // 1. Mark approved optimistically
       setOptimisticById((prev) => ({
         ...prev,
         [submissionPublicId]: "approved",
       }));
-      showNotification({
-        type: "success",
-        message: "Submission approved",
-        description: "You can now release funds using the 'Release Funds' button.",
-      });
+
+      // 2. Find the creator for this submission
+      const submission = submissions.find(
+        (s) => s.submissionPublicId === submissionPublicId
+      );
+      const creatorId = submission?.creatorId;
+
+      if (!creatorId) {
+        console.warn("⚠️ No creatorId found for auto-release");
+        showNotification({
+          type: "success",
+          message: "Submission approved",
+          description: "Could not auto-release funds — missing creator info.",
+        });
+        await refreshViews(submissionPublicId);
+        await refetchList();
+        return;
+      }
+
+      // 3. ✅ AUTO-RELEASE FUNDS
+      try {
+        const res = await releaseFundsToCreator(campaignPublicId, creatorId);
+        const data = res?.data?.success ? res.data : res;
+
+        setReleasedIds((prev) => ({
+          ...prev,
+          [submissionPublicId]: true,
+        }));
+
+        // Refetch escrow status
+        await refetchPaymentStatus();
+
+        showNotification({
+          type: "success",
+          message: "Approved & Funds Released",
+          description:
+            data?.message ||
+            "Payout has been triggered. Creator will receive funds shortly.",
+        });
+      } catch (releaseErr) {
+        console.error("Auto-release error:", releaseErr);
+        showNotification({
+          type: "warning",
+          message: "Approved, but release pending",
+          description:
+            releaseErr?.message || "Funds will be released once confirmed.",
+        });
+      }
+
       await refreshViews(submissionPublicId);
       await refetchList();
     },
@@ -219,61 +258,6 @@ export default function SubmissionsTab({ campaignPublicId, campaignId }) {
       });
     },
   });
-
-  // ============================================================
-  // RELEASE FUNDS
-  // ============================================================
-  const handleReleaseFunds = useCallback(
-    async (row) => {
-      console.log("🔥 RELEASE HANDLER FIRED");
-      console.log("Row:", row);
-
-      const creatorId = row?.creatorId;
-      const submissionPublicId = row?.submissionPublicId;
-
-      if (!creatorId) {
-        showNotification({
-          type: "error",
-          message: "Cannot release funds",
-          description: "Creator information missing for this submission.",
-        });
-        return;
-      }
-
-      setReleasingId(submissionPublicId);
-
-      try {
-        const res = await releaseFundsToCreator(campaignPublicId, creatorId);
-        const data = res?.data?.success ? res.data : res;
-
-        setReleasedIds((prev) => ({
-          ...prev,
-          [submissionPublicId]: true,
-        }));
-
-        // ✅ Refetch escrow status
-        await refetchPaymentStatus();
-
-        showNotification({
-          type: "success",
-          message: "Funds released",
-          description:
-            data?.message ||
-            "Payout has been triggered. Creator will receive funds shortly.",
-        });
-      } catch (err) {
-        console.error("Release funds error:", err);
-        showNotification({
-          type: "error",
-          message: "Release failed",
-          description: err?.message || "Please try again.",
-        });
-      } finally {
-        setReleasingId(null);
-      }
-    },
-    [campaignPublicId, showNotification, refetchPaymentStatus]
-  );
 
   const { mutate: requestRevision, isPending: isRequestingRevision } =
     useMutation({
@@ -343,6 +327,7 @@ export default function SubmissionsTab({ campaignPublicId, campaignId }) {
       if (!submissionPublicId) return;
 
       if (action === "approve") {
+        // ✅ Auto-release happens inside approve mutation onSuccess
         approve(submissionPublicId);
         return;
       }
@@ -441,7 +426,6 @@ export default function SubmissionsTab({ campaignPublicId, campaignId }) {
                   const status =
                     SUBMISSION_STATUS[row.status] ||
                     SUBMISSION_STATUS.pending_review;
-                  const isApproved = row.status === "approved";
 
                   // ✅ Get escrow status from escrowMap
                   const escrowTx = escrowMap[row.creatorId];
@@ -450,13 +434,6 @@ export default function SubmissionsTab({ campaignPublicId, campaignId }) {
                   const isReleased =
                     releasedIds[row.submissionPublicId] ||
                     RELEASED_STATUSES.includes(escrowStatus);
-
-                  const isFunded = FUNDED_STATUSES.includes(escrowStatus);
-                  const isReleasing = releasingId === row.submissionPublicId;
-
-                  console.log(
-                    `Row: ${row.creatorName}, escrowStatus: ${escrowStatus}, isReleased: ${isReleased}`
-                  );
 
                   return (
                     <tr
@@ -490,44 +467,22 @@ export default function SubmissionsTab({ campaignPublicId, campaignId }) {
                             <span className="h-2 w-2 shrink-0 rounded-full bg-red-500" />
                           ) : null}
 
-                          {/* Review Button */}
-                          <button
-                            type="button"
-                            onClick={() => handleOpenReview(row)}
-                            className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50"
-                          >
-                            <Eye className="h-3.5 w-3.5" />
-                            Review
-                          </button>
-
-                          {/* ✅ Release Funds Button — only if approved AND not released */}
-                          {isApproved && !isReleased && (
-                            <button
-                              type="button"
-                              disabled={isReleasing}
-                              onClick={() => handleReleaseFunds(row)}
-                              className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-emerald-600 px-3 text-xs font-medium text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                              {isReleasing ? (
-                                <>
-                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                  Releasing...
-                                </>
-                              ) : (
-                                <>
-                                  <Lock className="h-3.5 w-3.5" />
-                                  Release Funds
-                                </>
-                              )}
-                            </button>
-                          )}
-
-                          {/* ✅ Already Released Badge */}
-                          {isReleased && (
+                          {/* ✅ Funds Released Badge — if released */}
+                          {isReleased ? (
                             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
                               <CheckCircle2 className="h-3.5 w-3.5" />
-                              Already Released
+                              Funds Released
                             </span>
+                          ) : (
+                            /* Review Button — only if not released yet */
+                            <button
+                              type="button"
+                              onClick={() => handleOpenReview(row)}
+                              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                            >
+                              <Eye className="h-3.5 w-3.5" />
+                              Review
+                            </button>
                           )}
                         </div>
                       </td>
