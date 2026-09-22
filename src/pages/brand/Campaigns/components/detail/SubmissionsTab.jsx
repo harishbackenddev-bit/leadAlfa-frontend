@@ -188,62 +188,57 @@ export default function SubmissionsTab({ campaignPublicId, campaignId }) {
   );
 
   // ============================================================
-  // ✅ AUTO-RELEASE ON APPROVE
+  // ✅ APPROVE + AUTO-RELEASE FUNDS
   // ============================================================
   const { mutate: approve, isPending: isApproving } = useMutation({
     ...approveSubmissionMutation(campaignPublicId),
     onSuccess: async (_data, submissionPublicId) => {
-      // 1. Mark approved optimistically
+      // 1. Mark approved
       setOptimisticById((prev) => ({
         ...prev,
         [submissionPublicId]: "approved",
       }));
 
-      // 2. Find the creator for this submission
+      // 2. Find creator
       const submission = submissions.find(
         (s) => s.submissionPublicId === submissionPublicId
       );
       const creatorId = submission?.creatorId;
 
-      if (!creatorId) {
-        console.warn("⚠️ No creatorId found for auto-release");
+      // 3. Auto-release funds
+      if (creatorId) {
+        try {
+          const res = await releaseFundsToCreator(campaignPublicId, creatorId);
+          const data = res?.data?.success ? res.data : res;
+
+          setReleasedIds((prev) => ({
+            ...prev,
+            [submissionPublicId]: true,
+          }));
+
+          await refetchPaymentStatus();
+
+          showNotification({
+            type: "success",
+            message: "Approved & Funds Released",
+            description:
+              data?.message ||
+              "Payout has been triggered. Creator will receive funds shortly.",
+          });
+        } catch (releaseErr) {
+          console.error("Auto-release error:", releaseErr);
+          showNotification({
+            type: "warning",
+            message: "Approved, but release pending",
+            description:
+              releaseErr?.message || "Funds will be released shortly.",
+          });
+        }
+      } else {
         showNotification({
           type: "success",
           message: "Submission approved",
-          description: "Could not auto-release funds — missing creator info.",
-        });
-        await refreshViews(submissionPublicId);
-        await refetchList();
-        return;
-      }
-
-      // 3. ✅ AUTO-RELEASE FUNDS
-      try {
-        const res = await releaseFundsToCreator(campaignPublicId, creatorId);
-        const data = res?.data?.success ? res.data : res;
-
-        setReleasedIds((prev) => ({
-          ...prev,
-          [submissionPublicId]: true,
-        }));
-
-        // Refetch escrow status
-        await refetchPaymentStatus();
-
-        showNotification({
-          type: "success",
-          message: "Approved & Funds Released",
-          description:
-            data?.message ||
-            "Payout has been triggered. Creator will receive funds shortly.",
-        });
-      } catch (releaseErr) {
-        console.error("Auto-release error:", releaseErr);
-        showNotification({
-          type: "warning",
-          message: "Approved, but release pending",
-          description:
-            releaseErr?.message || "Funds will be released once confirmed.",
+          description: "Funds release pending — creator info missing.",
         });
       }
 
@@ -327,7 +322,7 @@ export default function SubmissionsTab({ campaignPublicId, campaignId }) {
       if (!submissionPublicId) return;
 
       if (action === "approve") {
-        // ✅ Auto-release happens inside approve mutation onSuccess
+        // ✅ Auto-release happens inside approve onSuccess
         approve(submissionPublicId);
         return;
       }
@@ -427,7 +422,6 @@ export default function SubmissionsTab({ campaignPublicId, campaignId }) {
                     SUBMISSION_STATUS[row.status] ||
                     SUBMISSION_STATUS.pending_review;
 
-                  // ✅ Get escrow status from escrowMap
                   const escrowTx = escrowMap[row.creatorId];
                   const escrowStatus = escrowTx?.status;
 
@@ -467,22 +461,22 @@ export default function SubmissionsTab({ campaignPublicId, campaignId }) {
                             <span className="h-2 w-2 shrink-0 rounded-full bg-red-500" />
                           ) : null}
 
-                          {/* ✅ Funds Released Badge — if released */}
-                          {isReleased ? (
+                          {/* ✅ Review Button — always visible */}
+                          <button
+                            type="button"
+                            onClick={() => handleOpenReview(row)}
+                            className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                          >
+                            <Eye className="h-3.5 w-3.5" />
+                            Review
+                          </button>
+
+                          {/* ✅ Funds Released Badge */}
+                          {isReleased && (
                             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
                               <CheckCircle2 className="h-3.5 w-3.5" />
                               Funds Released
                             </span>
-                          ) : (
-                            /* Review Button — only if not released yet */
-                            <button
-                              type="button"
-                              onClick={() => handleOpenReview(row)}
-                              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50"
-                            >
-                              <Eye className="h-3.5 w-3.5" />
-                              Review
-                            </button>
                           )}
                         </div>
                       </td>
