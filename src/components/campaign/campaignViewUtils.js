@@ -17,7 +17,9 @@ export function formatRandAmount(value) {
   return `R ${withGrouping}.${dec}`;
 }
 
-/** Invoice-based total creator budget from campaign API (CampaignInvoice). */
+// ============================================================
+// ✅ Total budget (brand view)
+// ============================================================
 export function getCampaignCreatorVisibleBudget(campaign) {
   if (!campaign) return null;
   const raw =
@@ -28,20 +30,18 @@ export function getCampaignCreatorVisibleBudget(campaign) {
 }
 
 // ============================================================
-// ✅ NEW: Per-creator amount (creator view)
-// Total budget / numberOfCreators
-// Prefers backend `creatorAmount` if provided
+// ✅ Per-creator amount (creator view)
 // ============================================================
 export function getCampaignCreatorAmount(campaign) {
   if (!campaign) return null;
 
-  // ✅ 1. Prefer backend `creatorAmount` (already divided)
+  // Prefer backend `creatorAmount` if provided
   if (campaign.creatorAmount != null && campaign.creatorAmount !== "") {
     const num = Number(String(campaign.creatorAmount).replace(/,/g, ""));
     if (!Number.isNaN(num)) return num;
   }
 
-  // ✅ 2. Fallback: calculate from total / creators
+  // Fallback: total / creators
   const totalBudget = getCampaignCreatorVisibleBudget(campaign);
   if (!totalBudget) return null;
 
@@ -52,20 +52,32 @@ export function getCampaignCreatorAmount(campaign) {
   return Number(totalBudget) / creators;
 }
 
-/** Fixed compensation label — shows PER-CREATOR amount for cash campaigns. */
-export function formatCampaignCompensation(campaign) {
+// ============================================================
+// ✅ Role-aware: which amount to show
+// viewerRole = "creator" → per-creator
+// viewerRole = "brand"   → total budget (default)
+// ============================================================
+function resolveDisplayAmount(campaign, viewerRole) {
+  if (!campaign) return null;
+  return viewerRole === "creator"
+    ? getCampaignCreatorAmount(campaign)
+    : getCampaignCreatorVisibleBudget(campaign);
+}
+
+// ============================================================
+// ✅ Format compensation — role-aware
+// ============================================================
+export function formatCampaignCompensation(campaign, viewerRole = "brand") {
   if (!campaign) return "—";
   const type = String(campaign.compensationType || "").toLowerCase();
   if (type.includes("gift")) {
     return campaign.giftNameDescription?.trim() || "Gift";
   }
 
-  // ✅ Use per-creator amount
-  const perCreator = getCampaignCreatorAmount(campaign);
-  const formatted = formatRandAmount(perCreator);
+  const amount = resolveDisplayAmount(campaign, viewerRole);
+  const formatted = formatRandAmount(amount);
   if (formatted) return formatted;
 
-  // Fallback: video length + creator count
   const parts = [];
   if (campaign.videoLength) parts.push(String(campaign.videoLength));
   if (campaign.numberOfCreators != null && campaign.numberOfCreators !== "") {
@@ -81,11 +93,13 @@ export function formatCampaignCompensation(campaign) {
   return "—";
 }
 
-/** Same payment line as brand campaign sidebar card — PER-CREATOR amount. */
-export function getSidebarPaymentRange(campaign) {
+// ============================================================
+// ✅ Sidebar payment range — role-aware
+// ============================================================
+export function getSidebarPaymentRange(campaign, viewerRole = "brand") {
   if (!campaign) return "-";
   const isGift = String(campaign.compensationType || "").toLowerCase().includes("gift");
   if (isGift) return "Gift Campaign";
-  const formatted = formatCampaignCompensation(campaign);
+  const formatted = formatCampaignCompensation(campaign, viewerRole);
   return formatted === "—" ? "-" : formatted;
 }

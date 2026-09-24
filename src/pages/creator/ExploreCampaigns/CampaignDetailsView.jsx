@@ -143,6 +143,7 @@ export default function CampaignDetailsView() {
 
         <CampaignViewContent
           campaign={campaign}
+                     viewerRole="creator"    
           onApplyClick={alreadyApplied ? undefined : handleApplyNow}
         />
       </div>

@@ -30,7 +30,8 @@ function getPetsRequiredDisplay(campaign) {
  * @param {React.ReactNode} [sidebarSlot] — Replaces the default sticky sidebar (e.g. compensation + timeline + submit revisions).
  */
 export default function CampaignViewContent({
-  campaign,
+campaign,
+  viewerRole = "brand",  
   showCampaignDetailsGrid = false,
   onApplyClick,
   applyLabel = "Apply Now",
@@ -40,12 +41,13 @@ export default function CampaignViewContent({
 }) {
   if (!campaign) return null;
 
+  
+
   const deliverable =
     campaign?.deliverables || campaign?.socialMediaType || "-";
 
-  const compensationRange = formatCampaignCompensation(campaign);
-
-  const sidebarPaymentRange = getSidebarPaymentRange(campaign);
+ const compensationRange = formatCampaignCompensation(campaign, viewerRole);
+  const sidebarPaymentRange = getSidebarPaymentRange(campaign, viewerRole);
 
   const creativeDirection = campaign?.creativeDirection || {};
   const videoParts = String(creativeDirection.videoStructure || "")
