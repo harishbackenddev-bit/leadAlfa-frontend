@@ -178,7 +178,7 @@ export default function CampaignCreateSidebar({
         {showAmounts && fundingQuote && (
           <div className="mt-4 space-y-2.5 border-t border-[#E2E8F0] pt-4">
             <SummaryRow
-              label="TradeSafe Escrow & Processing Fee (est. 5.5%)"
+              label="TradeSafe Escrow & Processing Fee"
               value={formatAmountOrDash(fundingQuote.tradesafeFeeInclVat)}
               highlight
             />

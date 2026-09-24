@@ -254,7 +254,7 @@ export default function StepReviewPublish({
               </div>
               <div className="flex justify-between text-sm border-t border-gray-300 pt-2">
                 <span className="font-semibold text-[#1E60DB]">
-                  TradeSafe Escrow & Processing Fee (est. 5.5%)
+                  TradeSafe Escrow & Processing Fee
                 </span>
                 <span className="font-semibold text-[#1E60DB]">
                   R {Number(estimatedQuote.tradesafeFeeInclVat || 0).toFixed(2)}
