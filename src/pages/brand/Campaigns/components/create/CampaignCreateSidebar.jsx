@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Megaphone, Shield, Loader2 } from "lucide-react";
+import React from "react";
+import { Megaphone, Shield } from "lucide-react";
 import { Button } from "../../../../../components/ui/button";
 import { formatRandAmount } from "../../../../../components/campaign/campaignViewUtils";
 import {
@@ -7,10 +7,6 @@ import {
   CAMPAIGN_CREATE_STEP_COUNT,
 } from "../../data/campaignCreateStepsData";
 import { getCampaignCreateProgressPercent } from "../../utils/campaignCreatePricingUtils";
-import {
-  getPaymentMethods,
-  generateFundingQuote,
-} from "../../../../../services/api/apiservices";
 
 function SummaryRow({ label, value, bold = false, muted = false, hint, highlight = false }) {
   return (
@@ -64,55 +60,7 @@ export default function CampaignCreateSidebar({
       ? `${invoice.numberOfCreators} × ${formatAmountOrDash(invoice.perCreatorRate)}`
       : null;
 
-  // ✅ Payment method state
-  const [methods, setMethods] = useState([]);
-  const [selectedMethod, setSelectedMethod] = useState(null);
-  const [isLoadingMethods, setIsLoadingMethods] = useState(false);
-  const [isQuoting, setIsQuoting] = useState(false);
-  const [quoteError, setQuoteError] = useState(null);
-
-  // Load methods when on review step
-  useEffect(() => {
-    if (!campaignPublicId || !showAmounts) return;
-    if (currentStep < CAMPAIGN_CREATE_STEP_COUNT) return;
-
-    const fetchMethods = async () => {
-      try {
-        setIsLoadingMethods(true);
-        const res = await getPaymentMethods(campaignPublicId);
-        const data = res?.data || res;
-        setMethods(data?.methods || []);
-      } catch (err) {
-        console.error("Failed to load payment methods:", err);
-        setQuoteError(err?.message || "Failed to load payment methods");
-      } finally {
-        setIsLoadingMethods(false);
-      }
-    };
-
-    fetchMethods();
-  }, [campaignPublicId, currentStep, showAmounts]);
-
-  // Handle method select
-  const handleSelectMethod = async (code) => {
-    if (!campaignPublicId) return;
-
-    setSelectedMethod(code);
-    setQuoteError(null);
-    setIsQuoting(true);
-
-    try {
-      const res = await generateFundingQuote(campaignPublicId, code);
-      const data = res?.data || res;
-      onQuoteChange?.(data);
-    } catch (err) {
-      setQuoteError(err?.message || "Failed to calculate fee");
-      onQuoteChange?.(null);
-    } finally {
-      setIsQuoting(false);
-    }
-  };
-
+  // ✅ Final total = invoice.totalDue + TradeSafe fee (from fundingQuote)
   const finalTotal =
     showAmounts && invoice.totalDue != null
       ? invoice.totalDue + (fundingQuote?.tradesafeFeeInclVat || 0)
@@ -184,70 +132,11 @@ export default function CampaignCreateSidebar({
           <SummaryRow label="VAT (SARS @ 15%)" value={showAmounts ? formatAmountOrDash(invoice.vat) : "—"} muted />
         </div>
 
-        {/* ✅ PAYMENT METHOD SELECTOR */}
-        {showAmounts && currentStep >= CAMPAIGN_CREATE_STEP_COUNT && (
-          <div className="mt-4 border-t border-[#E2E8F0] pt-4">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-[#64748B]">
-              Payment Method
-            </p>
-
-            {isLoadingMethods ? (
-              <div className="flex items-center gap-2 text-xs text-gray-500">
-                <Loader2 className="h-3 w-3 animate-spin" />
-                Loading methods...
-              </div>
-            ) : methods.length === 0 ? (
-              <p className="text-xs text-gray-500">No payment methods available.</p>
-            ) : (
-              <div className="space-y-2">
-                {methods.map((method) => (
-                  <label
-                    key={method.code}
-                    className={`flex items-center gap-2 rounded-lg border p-2.5 cursor-pointer transition ${
-                      selectedMethod === method.code
-                        ? "border-[#0C7BB3] bg-[#EFF6FF]"
-                        : "border-gray-200 hover:bg-gray-50"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value={method.code}
-                      checked={selectedMethod === method.code}
-                      onChange={() => handleSelectMethod(method.code)}
-                      className="h-3.5 w-3.5 text-[#0C7BB3]"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-gray-900 truncate">{method.label}</p>
-                      <p className="text-[10px] text-gray-500">
-                        {(method.rateExVat * 100).toFixed(2)}% ex VAT
-                      </p>
-                    </div>
-                  </label>
-                ))}
-              </div>
-            )}
-
-            {quoteError && (
-              <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[11px] text-red-700">
-                {quoteError}
-              </div>
-            )}
-
-            {isQuoting && (
-              <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
-                <Loader2 className="h-3 w-3 animate-spin" />
-                Calculating TradeSafe fee...
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ✅ TradeSafe Fee */}
+        {/* ✅ TradeSafe Fee (only if selected) */}
         {showAmounts && fundingQuote && (
           <div className="mt-4 space-y-2.5 border-t border-[#E2E8F0] pt-4">
             <SummaryRow
-              label={`TradeSafe Escrow & Processing Fee (${fundingQuote.paymentMethodLabel || ""})`}
+              label={`TradeSafe Fee (${fundingQuote.paymentMethodLabel || ""})`}
               value={formatAmountOrDash(fundingQuote.tradesafeFeeInclVat)}
               highlight
             />
@@ -306,7 +195,7 @@ export default function CampaignCreateSidebar({
               Payment method required
             </p>
             <p className="mt-0.5 text-xs text-amber-800">
-              Select a payment method to see the TradeSafe fee and continue
+              Select a payment method in the Review section to continue
             </p>
           </div>
         </div>
