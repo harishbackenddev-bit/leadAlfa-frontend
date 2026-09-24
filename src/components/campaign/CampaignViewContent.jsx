@@ -134,12 +134,12 @@ export default function CampaignViewContent({
                 <p className="text-xs uppercase text-white/50">Video Length</p>
                 <p className="mt-1">{campaign?.videoLength || "-"}</p>
               </div>
-              <div className="rounded-xl bg-white/10 p-3 text-sm">
+              {/* <div className="rounded-xl bg-white/10 p-3 text-sm">
                 <p className="text-xs uppercase text-white/50">Creators</p>
                 <p className="mt-1">
                   {campaign?.numberOfCreators ?? campaign?.creatorsNeeded ?? "-"}
                 </p>
-              </div>
+              </div> */}
               {onApplyClick ? (
                 <div className="rounded-xl bg-white/10 p-3 text-sm">
                   <p className="text-xs uppercase text-white/50">Pets Required</p>

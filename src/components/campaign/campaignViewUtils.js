@@ -17,7 +17,7 @@ export function formatRandAmount(value) {
   return `R ${withGrouping}.${dec}`;
 }
 
-/** Invoice-based creator-visible budget from campaign API (CampaignInvoice). */
+/** Invoice-based total creator budget from campaign API (CampaignInvoice). */
 export function getCampaignCreatorVisibleBudget(campaign) {
   if (!campaign) return null;
   const raw =
@@ -27,7 +27,32 @@ export function getCampaignCreatorVisibleBudget(campaign) {
   return raw != null && raw !== "" ? raw : null;
 }
 
-/** Fixed compensation label for cards, tables, and detail views. */
+// ============================================================
+// ✅ NEW: Per-creator amount (creator view)
+// Total budget / numberOfCreators
+// Prefers backend `creatorAmount` if provided
+// ============================================================
+export function getCampaignCreatorAmount(campaign) {
+  if (!campaign) return null;
+
+  // ✅ 1. Prefer backend `creatorAmount` (already divided)
+  if (campaign.creatorAmount != null && campaign.creatorAmount !== "") {
+    const num = Number(String(campaign.creatorAmount).replace(/,/g, ""));
+    if (!Number.isNaN(num)) return num;
+  }
+
+  // ✅ 2. Fallback: calculate from total / creators
+  const totalBudget = getCampaignCreatorVisibleBudget(campaign);
+  if (!totalBudget) return null;
+
+  const creatorsRaw = campaign.numberOfCreators ?? campaign.creatorsNeeded;
+  const creators = Number(creatorsRaw);
+  if (!Number.isFinite(creators) || creators < 1) return null;
+
+  return Number(totalBudget) / creators;
+}
+
+/** Fixed compensation label — shows PER-CREATOR amount for cash campaigns. */
 export function formatCampaignCompensation(campaign) {
   if (!campaign) return "—";
   const type = String(campaign.compensationType || "").toLowerCase();
@@ -35,9 +60,12 @@ export function formatCampaignCompensation(campaign) {
     return campaign.giftNameDescription?.trim() || "Gift";
   }
 
-  const formatted = formatRandAmount(getCampaignCreatorVisibleBudget(campaign));
+  // ✅ Use per-creator amount
+  const perCreator = getCampaignCreatorAmount(campaign);
+  const formatted = formatRandAmount(perCreator);
   if (formatted) return formatted;
 
+  // Fallback: video length + creator count
   const parts = [];
   if (campaign.videoLength) parts.push(String(campaign.videoLength));
   if (campaign.numberOfCreators != null && campaign.numberOfCreators !== "") {
@@ -53,7 +81,7 @@ export function formatCampaignCompensation(campaign) {
   return "—";
 }
 
-/** Same payment line as brand campaign sidebar card */
+/** Same payment line as brand campaign sidebar card — PER-CREATOR amount. */
 export function getSidebarPaymentRange(campaign) {
   if (!campaign) return "-";
   const isGift = String(campaign.compensationType || "").toLowerCase().includes("gift");
