@@ -485,7 +485,7 @@ export default function CampaignForm({
             formData={formData}
             invoice={invoice}
             campaignPublicId={campaignPublicId}
-            onQuoteChange={onQuoteChange}   // ✅ Add
+            onQuoteChange={onQuoteChange}
           />
         );
       default:
@@ -627,8 +627,10 @@ export default function CampaignForm({
             isPublishing={isSubmitting}
             isSaving={isSaving}
             campaignSaved={Boolean(campaignPublicId)}
-            hasPaymentMethod={Boolean(fundingQuote)}
-            fundingQuote={fundingQuote}    // ✅ Pass quote, not handler
+            campaignPublicId={campaignPublicId}   
+            hasPaymentMethod={Boolean(fundingQuote?.paymentMethod)}
+            fundingQuote={fundingQuote}
+            onQuoteChange={onQuoteChange} 
           />
         </div>
       </div>

@@ -86,24 +86,28 @@ export default function EditCampaigns() {
   // ✅ Updated with payment method
 const handlePublishCampaign = async (campaignPublicId) => {
   console.log("🚀 PUBLISH CLICKED (Edit)");
+  console.log("   fundingQuote:", fundingQuote);
 
   if (isSubmitting) return;
 
-  if (!fundingQuote) {
-    throw new Error("Please wait for the fee estimate to load");
+  // ✅ Require payment method
+  if (!fundingQuote || !fundingQuote.paymentMethod) {
+    throw new Error("Please select a payment method first");
   }
 
   setIsSubmitting(true);
 
   try {
-    const fundRes = await fundCampaign(campaignPublicId);
+    // ✅ Pass payment method + quote version
+    const fundRes = await fundCampaign(campaignPublicId, {
+      paymentMethod: fundingQuote.paymentMethod,
+      quoteVersion: fundingQuote.quoteVersion,
+    });
     const fundData = fundRes?.data?.success ? fundRes.data : fundRes;
     const walletUrl = fundData?.fundingBatch?.walletDepositUrl;
 
     if (!walletUrl) throw new Error("No wallet deposit link received.");
     window.open(walletUrl, "_blank", "noopener,noreferrer");
-
-    // ❌ REMOVED: simulateFunded
 
     const response = await publishCampaign(campaignPublicId);
     if (!response?.campaignPublicId && !response?.invoicePublicId) {

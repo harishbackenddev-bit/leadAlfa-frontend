@@ -1297,11 +1297,14 @@ export const getEstimatedFee = async (campaignId) => {
   }
 };
 
-// ✅ Fund campaign (no payment method payload)
-export const fundCampaign = async (campaignId) => {
+// ============================================================
+// ✅ Fund Campaign (with paymentMethod)
+// ============================================================
+export const fundCampaign = async (campaignId, payload = {}) => {
   try {
     const response = await axiosInstance.post(
-      `/tradesafe-payment/campaign/${campaignId}/fund`
+      `/tradesafe-payment/campaign/${campaignId}/fund`,
+      payload
     );
     return response.data;
   } catch (error) {
@@ -1446,3 +1449,34 @@ export const cancelCreatorEscrow = async (campaignId, payload) => {
     throwContactRequestError(error);
   }
 };
+
+
+// ============================================================
+// ✅ Payment Methods (fetch available for campaign)
+// ============================================================
+export const getPaymentMethods = async (campaignId) => {
+  try {
+    const response = await axiosInstance.get(
+      `/tradesafe-payment/campaign/${campaignId}/payment-methods`
+    );
+    return response.data;
+  } catch (error) {
+    throwContactRequestError(error);
+  }
+};
+
+// ============================================================
+// ✅ Generate Funding Quote (method-specific)
+// ============================================================
+export const generateFundingQuote = async (campaignId, paymentMethod) => {
+  try {
+    const response = await axiosInstance.post(
+      `/tradesafe-payment/campaign/${campaignId}/funding-quote`,
+      { paymentMethod }
+    );
+    return response.data;
+  } catch (error) {
+    throwContactRequestError(error);
+  }
+};
+

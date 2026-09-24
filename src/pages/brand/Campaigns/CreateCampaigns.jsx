@@ -6,7 +6,6 @@ import {
   updateCampaignByPublicId,
   publishCampaign,
   fundCampaign,
-  // ❌ simulateFunded,   // comment out — real webhook confirms
 } from "../../../services/api/apiservices";
 import { invalidateCampaigns } from "../../../services/tanstack/queryService";
 import {
@@ -53,15 +52,19 @@ export default function CreateCampaigns() {
 
     if (isSubmitting) return;
 
-    if (!fundingQuote) {
-      throw new Error("Please wait for the fee estimate to load");
+    // ✅ Require payment method
+    if (!fundingQuote || !fundingQuote.paymentMethod) {
+      throw new Error("Please select a payment method first");
     }
 
     setIsSubmitting(true);
 
     try {
-      // STEP 1: Fund campaign (no payment method — TradeSafe handles it)
-      const fundRes = await fundCampaign(campaignPublicId);
+      // STEP 1: Fund campaign with selected method
+      const fundRes = await fundCampaign(campaignPublicId, {
+        paymentMethod: fundingQuote.paymentMethod,
+        quoteVersion: fundingQuote.quoteVersion,
+      });
       const fundData = fundRes?.data?.success ? fundRes.data : fundRes;
 
       const walletUrl = fundData?.fundingBatch?.walletDepositUrl;
@@ -69,9 +72,7 @@ export default function CreateCampaigns() {
 
       window.open(walletUrl, "_blank", "noopener,noreferrer");
 
-      // ❌ REMOVED: simulateFunded — real webhook confirms
-
-      // STEP 2: Publish (only if funds received)
+      // STEP 2: Publish
       const response = await publishCampaign(campaignPublicId);
       if (!response?.campaignPublicId && !response?.invoicePublicId) {
         throw new Error(response?.message || "Failed to publish campaign.");
@@ -95,8 +96,8 @@ export default function CreateCampaigns() {
       onSaveSuccess={handleSaveSuccess}
       onPublishCampaign={handlePublishCampaign}
       isSubmitting={isSubmitting}
-  fundingQuote={fundingQuote}
-  onQuoteChange={setFundingQuote}
+      fundingQuote={fundingQuote}
+      onQuoteChange={setFundingQuote}
     />
   );
 }
