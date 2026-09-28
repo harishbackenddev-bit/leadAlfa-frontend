@@ -489,6 +489,7 @@ export default function JobDetailView() {
 
         <CampaignViewContent
           campaign={displayCampaign}
+          viewerRole="creator"  
           onApplyClick={
             sidebarApplyLabel &&
             status === "active" &&
