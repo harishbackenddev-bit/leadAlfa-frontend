@@ -10,6 +10,11 @@ const STATUS_COLORS = {
   FAILED: "bg-red-100 text-red-700",
 };
 
+// ✅ Custom status label mapping
+const STATUS_LABELS = {
+  PAYOUT_TRIGGERED: "Paid",
+};
+
 export default function TransactionsHistory({ transactions = [] }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -78,9 +83,10 @@ export default function TransactionsHistory({ transactions = [] }) {
     });
   };
 
-  // Get status label
+  // Get status label with custom overrides
   const getStatusLabel = (status) => {
     if (!status) return "—";
+    if (STATUS_LABELS[status]) return STATUS_LABELS[status];
     return status
       .split("_")
       .map((w) => w.charAt(0) + w.slice(1).toLowerCase())
