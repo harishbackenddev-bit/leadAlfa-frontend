@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect, useCallback } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { getCreatorApplicationsQueryOptions } from "../../../../../services/tanstack/queryService";
@@ -9,24 +9,16 @@ import {
   parseApplicantsResponse,
 } from "../../utils/proposalUtils";
 import ErrorState from "../../../../../components/common/ErrorState";
-import {
-  getCampaignPaymentStatus,
-  selectCreator,
-  fundCreator,
-  cancelCreatorEscrow,
-} from "../../../../../services/api/apiservices";
-import { useNotification } from "../../../../../context/NotificationContext";
+import { getCampaignPaymentStatus } from "../../../../../services/api/apiservices";
 
 export default function CreatorsTab({ campaignId }) {
   const navigate = useNavigate();
-  const { showNotification } = useNotification();
 
   const numericCampaignId = Number(campaignId);
-  const hasValidCampaignId =
-    Boolean(campaignId) && !Number.isNaN(numericCampaignId);
+  const hasValidCampaignId = Boolean(campaignId) && !Number.isNaN(numericCampaignId);
 
   // ============ CREATORS ============
-  const { data: response, isLoading, isError, refetch } = useQuery({
+  const { data: response, isLoading, isError } = useQuery({
     ...getCreatorApplicationsQueryOptions(campaignId),
     enabled: hasValidCampaignId,
   });
@@ -36,14 +28,10 @@ export default function CreatorsTab({ campaignId }) {
     return mapAcceptedApplicantsToCreators(applicants);
   }, [response]);
 
-  // ============ ✅ ESCROW STATE ============
-  const [processingCreatorId, setProcessingCreatorId] = useState(null);
-  const [cancellingCreatorId, setCancellingCreatorId] = useState(null);
-  const [error, setError] = useState("");
+  // ============ ✅ PAYMENT STATUS ============
   const [paymentStatus, setPaymentStatus] = useState(null);
 
-  // ============ ✅ FETCH PAYMENT STATUS ============
-  const { data: statusData, refetch: refetchStatus } = useQuery({
+  const { data: statusData } = useQuery({
     queryKey: ["campaign-payment-status", campaignId],
     queryFn: () => getCampaignPaymentStatus(campaignId),
     enabled: hasValidCampaignId,
@@ -65,96 +53,6 @@ export default function CreatorsTab({ campaignId }) {
 
   const isCampaignFunded = ["FUNDS_RECEIVED", "FUNDED"].includes(
     paymentStatus?.fundingStatus
-  );
-
-  // ============ ✅ HANDLE SELECT & FUND ============
-  const handleSelectAndFund = useCallback(
-    async (creator) => {
-      setProcessingCreatorId(creator.id);
-      setError("");
-
-      try {
-        // STEP 1: Create escrow
-        const res = await selectCreator(campaignId, {
-          creatorId: creator.id,
-          creatorAmount: creator.budget,
-        });
-        const data = res?.data?.success ? res.data : res;
-
-        if (!data?.transactionId) {
-          throw new Error("Failed to create escrow transaction.");
-        }
-
-        // STEP 2: Fund from wallet
-        await fundCreator(data.transactionId);
-
-        // STEP 3: Refresh
-        await refetch();
-        await refetchStatus();
-
-        showNotification({
-          type: "success",
-          message: "Escrow funded",
-          description: `R ${Number(creator.budget || 0).toFixed(2)} secured in escrow for ${creator.name}.`,
-        });
-      } catch (err) {
-        console.error("Select & Fund error:", err);
-        setError(err?.error || "Failed to select & fund creator");
-        showNotification({
-          type: "error",
-          message: "Failed to fund escrow",
-          description: err?.error || err?.message || "Please try again.",
-        });
-      } finally {
-        setProcessingCreatorId(null);
-      }
-    },
-    [campaignId, refetch, refetchStatus, showNotification]
-  );
-
-  // ============ ✅ HANDLE CANCEL ESCROW ============
-  const handleCancelEscrow = useCallback(
-    async (creator) => {
-      const confirmed = window.confirm(
-        `Cancel ${creator.name}'s escrow?\n\nFunds will be returned to the campaign wallet and this creator will be removed from the campaign. Other creators are not affected.`
-      );
-      if (!confirmed) return;
-
-      setCancellingCreatorId(creator.id);
-      setError("");
-
-      try {
-        const res = await cancelCreatorEscrow(campaignId, {
-          creatorId: creator.id,
-          reason: "Brand cancelled creator escrow",
-        });
-        const data = res?.data?.success ? res.data : res;
-
-        if (!data?.success) {
-          throw new Error(data?.error || "Failed to cancel escrow");
-        }
-
-        await refetch();
-        await refetchStatus();
-
-        showNotification({
-          type: "success",
-          message: "Escrow cancelled",
-          description: `${creator.name}'s escrow was cancelled. Funds returned to campaign wallet.`,
-        });
-      } catch (err) {
-        console.error("Cancel escrow error:", err);
-        setError(err?.error || err?.message || "Failed to cancel escrow");
-        showNotification({
-          type: "error",
-          message: "Cancel failed",
-          description: err?.error || err?.message || "Please try again.",
-        });
-      } finally {
-        setCancellingCreatorId(null);
-      }
-    },
-    [campaignId, refetch, refetchStatus, showNotification]
   );
 
   // ============ HANDLERS ============
@@ -213,18 +111,7 @@ export default function CreatorsTab({ campaignId }) {
           <span className="shrink-0">⏳</span>
           <div>
             <p className="font-semibold">Campaign Not Funded</p>
-            <p>Please fund the campaign first before creating creator escrows.</p>
-          </div>
-        </div>
-      )}
-
-      {/* Error */}
-      {error && (
-        <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-          <span className="shrink-0">❌</span>
-          <div>
-            <p className="font-semibold">Error</p>
-            <p>{error}</p>
+            <p>Please fund the campaign first before creators can start work.</p>
           </div>
         </div>
       )}
@@ -237,8 +124,6 @@ export default function CreatorsTab({ campaignId }) {
         ) : (
           creators.map((creator) => {
             const tx = creatorEscrowMap[creator.id];
-            const isProcessing = processingCreatorId === creator.id;
-            const isCancelling = cancellingCreatorId === creator.id;
 
             return (
               <CreatorRowCard
@@ -246,14 +131,9 @@ export default function CreatorsTab({ campaignId }) {
                 creator={creator}
                 onViewProfile={handleViewProfile}
                 onMessage={handleMessage}
-                // ✅ Escrow props
+                // ✅ Escrow status only
                 escrowStatus={tx?.status}
                 escrowAmount={tx?.creatorNet ?? tx?.amount}
-                isSelectingEscrow={isProcessing}
-                isCancellingEscrow={isCancelling}
-                isCampaignFunded={isCampaignFunded}
-                onSelectAndFund={handleSelectAndFund}
-                onCancelEscrow={handleCancelEscrow}
               />
             );
           })
