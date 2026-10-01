@@ -28,26 +28,32 @@ function ProposalSidebar({
   onAccept,
   onDecline,
   onSendMessage,
+  isProcessing,
+  disabled,
 }) {
+  const isLocked = disabled || isProcessing;
+
   return (
     <div className="rounded-lg bg-gray-50 p-4 lg:min-w-[220px]">
       {proposal.status === "pending" ? (
         <div className="mt-4 space-y-2">
           <Button
             type="button"
-            className="h-10 w-full gap-2 rounded-lg bg-emerald-600 text-sm hover:bg-emerald-700"
+            disabled={isLocked}
+            className="h-10 w-full gap-2 rounded-lg bg-emerald-600 text-sm hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
             onClick={(e) => {
               e.stopPropagation();
               onAccept?.(proposal);
             }}
           >
             <UserPlus className="h-4 w-4" />
-            Accept Proposal
+            {isProcessing ? "Accepting…" : "Accept Proposal"}
           </Button>
           <Button
             type="button"
             variant="outline"
-            className="h-10 w-full gap-2 rounded-lg border-red-200 text-sm text-red-600 hover:bg-red-50"
+            disabled={isLocked}
+            className="h-10 w-full gap-2 rounded-lg border-red-200 text-sm text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
             onClick={(e) => {
               e.stopPropagation();
               onDecline?.(proposal);
@@ -97,14 +103,17 @@ export default function ProposalCard({
   onAccept,
   onDecline,
   onSendMessage,
+  isProcessing = false,
+  disabled = false,
 }) {
   const videoPitch = getVideoPitchMedia(proposal.applicationMedia);
+  const isLocked = disabled || isProcessing;
 
   return (
     <article
       className={`rounded-xl border bg-white p-4 transition-colors md:p-5 ${
         expanded ? "border-[#1E60DB]" : "border-gray-200"
-      }`}
+      } ${disabled ? "opacity-60" : ""}`}
     >
       <ProposalCardHeader
         proposal={proposal}
@@ -139,6 +148,8 @@ export default function ProposalCard({
             onAccept={onAccept}
             onDecline={onDecline}
             onSendMessage={onSendMessage}
+            isProcessing={isProcessing}
+            disabled={disabled}
           />
         </div>
       ) : null}
