@@ -45,47 +45,45 @@ export default function CreateCampaigns() {
     invalidateCampaigns();
   };
 
-  const handlePublishCampaign = async (campaignPublicId) => {
-    console.log("🚀 PUBLISH CLICKED (Create)");
-    console.log("   campaignPublicId:", campaignPublicId);
-    console.log("   fundingQuote:", fundingQuote);
+ const handlePublishCampaign = async (campaignPublicId) => {
+  if (isSubmitting) return;
+  if (!fundingQuote?.paymentMethod) {
+    throw new Error("Please select a payment method first");
+  }
 
-    if (isSubmitting) return;
+  setIsSubmitting(true);
+  try {
+    // STEP 1: Fund
+    const fundRes = await fundCampaign(campaignPublicId, {
+      paymentMethod: fundingQuote.paymentMethod,
+      quoteVersion: fundingQuote.quoteVersion,
+    });
+    const fundData = fundRes?.data?.success ? fundRes.data : fundRes;
 
-    // ✅ Require payment method
-    if (!fundingQuote || !fundingQuote.paymentMethod) {
-      throw new Error("Please select a payment method first");
+    const walletUrl = fundData?.fundingBatch?.walletDepositUrl;
+    if (!walletUrl) throw new Error("No wallet deposit link received.");
+
+    // Open payment tab
+    window.open(walletUrl, "_blank", "noopener,noreferrer");
+
+    // STEP 2: Poll for payment status BEFORE publishing
+    const paid = await pollFundingStatus(fundData.fundingBatch.id);
+    if (!paid) throw new Error("Payment not completed.");
+
+    // STEP 3: Only now publish
+    const response = await publishCampaign(campaignPublicId);
+    if (!response?.campaignPublicId && !response?.invoicePublicId) {
+      throw new Error(response?.message || "Failed to publish campaign.");
     }
 
-    setIsSubmitting(true);
-
-    try {
-      // STEP 1: Fund campaign with selected method
-      const fundRes = await fundCampaign(campaignPublicId, {
-        paymentMethod: fundingQuote.paymentMethod,
-        quoteVersion: fundingQuote.quoteVersion,
-      });
-      const fundData = fundRes?.data?.success ? fundRes.data : fundRes;
-
-      const walletUrl = fundData?.fundingBatch?.walletDepositUrl;
-      if (!walletUrl) throw new Error("No wallet deposit link received.");
-
-      window.open(walletUrl, "_blank", "noopener,noreferrer");
-
-      // STEP 2: Publish
-      const response = await publishCampaign(campaignPublicId);
-      if (!response?.campaignPublicId && !response?.invoicePublicId) {
-        throw new Error(response?.message || "Failed to publish campaign.");
-      }
-
-      invalidateCampaigns();
-      navigate("/brand/campaigns");
-    } catch (error) {
-      throw new Error(getApiErrorMessage(error));
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    invalidateCampaigns();
+    navigate("/brand/campaigns");
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error));
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <CampaignForm
