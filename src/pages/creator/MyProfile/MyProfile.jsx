@@ -25,9 +25,9 @@ export default function MyProfile() {
         <CreatorReviews user={user} profile={profile} />
 
         {/* ✅ Payout Settings (TradeSafe) */}
-        <div className="mt-6">
+        {/* <div className="mt-6">
           <PaymentSettingsContent />
-        </div>
+        </div> */}
 
         {/* <AccountActions user={user} profile={profile} /> */}
       </div>

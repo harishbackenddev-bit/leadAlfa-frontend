@@ -1437,7 +1437,7 @@ export const getCreatorTransactions = async (params = {}) => {
   }
 };
 
-// 🔥 Creator — submit new bank change request
+// Creator — submit new bank change request
 export const requestBankAccountChange = async (payload) => {
   try {
     const response = await axiosInstance.post(
