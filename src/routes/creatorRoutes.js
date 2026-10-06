@@ -22,6 +22,9 @@ import Notifications from "../pages/notifications/Notifications";
 import MyShipments from "../pages/creator/Shipments/MyShipments";
 import ShipmentDetail from "../pages/creator/Shipments/ShipmentDetail";
 import DeliveryAddress from "../pages/creator/Shipments/DeliveryAddress";
+import BankChangeRequest, { BankChangeSubmitted } from "../pages/creator/MyEarnings/BankChangeRequest";
+import BankAccountSetup from "../pages/creator/MyEarnings/BankAccountSetup";
+
 // import { Navigate, redirect } from "react-router-dom";
 
 //import lazy
@@ -123,6 +126,18 @@ const creatorRoutes = [
             {
                 path: "notifications",
                 element: Notifications,
+            },
+            {
+                path: "earnings/bank-accounts/change-request",
+                element: BankChangeRequest,
+            },
+            {
+                path: "earnings/bank-accounts/new",
+                element: BankAccountSetup,
+            },
+            {
+                path: "earnings/bank-accounts/change-request/submitted",
+                element: BankChangeSubmitted,
             },
         ]
     }

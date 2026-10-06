@@ -1437,6 +1437,31 @@ export const getCreatorTransactions = async (params = {}) => {
   }
 };
 
+// 🔥 Creator — submit new bank change request
+export const requestBankAccountChange = async (payload) => {
+  try {
+    const response = await axiosInstance.post(
+      `/tradesafe/bank-change-request`,
+      payload
+    );
+    return response.data;
+  } catch (error) {
+    throwContactRequestError(error);
+  }
+};
+
+// 🔥 Creator — get my own requests
+export const getMyBankChangeRequests = async () => {
+  try {
+    const response = await axiosInstance.get(
+      `/tradesafe/bank-change-request`
+    );
+    return response.data;
+  } catch (error) {
+    throwContactRequestError(error);
+  }
+};
+
 // ✅ Cancel creator escrow
 export const cancelCreatorEscrow = async (campaignId, payload) => {
   try {
