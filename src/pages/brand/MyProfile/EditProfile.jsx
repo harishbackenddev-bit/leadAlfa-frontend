@@ -42,7 +42,7 @@ export default function EditProfile() {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("Form submitted:", formData, profilePhoto);
-    // TODO: Implement actual update logic
+
     navigate("/brand/my-profile");
   };
 
@@ -66,7 +66,7 @@ export default function EditProfile() {
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* First Name & Last Name */}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -96,7 +96,7 @@ export default function EditProfile() {
               </div>
             </div>
 
-            {/* Email & Phone */}
+   
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -126,7 +126,7 @@ export default function EditProfile() {
               </div>
             </div>
 
-            {/* Bio */}
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Bio
@@ -141,13 +141,13 @@ export default function EditProfile() {
               />
             </div>
 
-            {/* Upload Logo */}
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Upload Logo
               </label>
               <div className="flex flex-col items-center gap-4 mt-4 sm:flex-row sm:items-start sm:text-left">
-                {/* Upload Box */}
+                
                 <div
                   onDrop={handleDrop}
                   onDragOver={handleDragOver}
@@ -176,7 +176,7 @@ export default function EditProfile() {
                   </label>
                 </div>
 
-                {/* Drag & Drop button and instructions */}
+     
                 <div className="flex flex-col gap-2 mt-2 items-center text-center sm:items-start sm:text-left">
                   <label className="cursor-pointer">
                     <input
@@ -198,7 +198,7 @@ export default function EditProfile() {
               </div>
             </div>
 
-            {/* Action Buttons */}
+     
             <div className="flex flex-col items-center gap-3 pt-4 sm:flex-row sm:items-center sm:justify-between">
               <button
                 type="button"

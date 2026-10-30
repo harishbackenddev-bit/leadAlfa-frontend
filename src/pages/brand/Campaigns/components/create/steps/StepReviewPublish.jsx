@@ -58,9 +58,7 @@ export default function StepReviewPublish({
     (formData.selectedAddOns || []).includes(addon.id)
   ).map((addon) => addon.label);
 
-  // ============================================================
-  // ✅ Payment method state
-  // ============================================================
+
   const [methods, setMethods] = useState([]);
   const [selectedMethod, setSelectedMethod] = useState(null);
   const [isLoadingMethods, setIsLoadingMethods] = useState(false);
@@ -69,9 +67,7 @@ export default function StepReviewPublish({
 
   const showAmounts = invoice.hasVideoLength;
 
-  // ============================================================
-  // Load available payment methods
-  // ============================================================
+
   useEffect(() => {
     if (!campaignPublicId || !showAmounts) return;
 
@@ -92,9 +88,7 @@ export default function StepReviewPublish({
     fetchMethods();
   }, [campaignPublicId, showAmounts]);
 
-  // ============================================================
-  // Handle payment method select
-  // ============================================================
+
   const handleSelectMethod = async (code) => {
     if (!campaignPublicId) return;
 
@@ -114,7 +108,7 @@ export default function StepReviewPublish({
     }
   };
 
-  // Final total = invoice total + TradeSafe fee
+
   const finalTotal =
     showAmounts && invoice.totalDue != null
       ? invoice.totalDue + (fundingQuote?.tradesafeFeeInclVat || 0)
@@ -175,7 +169,7 @@ export default function StepReviewPublish({
           <ReviewRow label="Campaign Brief" value={formData.campaignBrief} />
         </section>
 
-        {/* Pricing */}
+
         <section>
           <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-[#94A3B8]">
             Pricing
@@ -200,9 +194,6 @@ export default function StepReviewPublish({
           />
         </section>
 
-        {/* ============================================================
-            ✅ PAYMENT METHOD SECTION (moved from sidebar)
-            ============================================================ */}
         {showAmounts && (
           <section className="rounded-2xl border border-[#e5e7eb] bg-white p-5">
             <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[#94A3B8]">
@@ -263,9 +254,7 @@ export default function StepReviewPublish({
               </div>
             )}
 
-            {/* ============================================================
-                ✅ PRICING BREAKDOWN (per client's screenshot)
-                ============================================================ */}
+  
             {fundingQuote && !isQuoting && (
               <div className="mt-4 space-y-2.5 border-t border-gray-200 pt-4">
                 <div className="flex justify-between text-sm">

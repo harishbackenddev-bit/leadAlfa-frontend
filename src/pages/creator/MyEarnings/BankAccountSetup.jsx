@@ -31,7 +31,7 @@ const hint = "text-xs text-[#606977] mt-[7px]";
 const panel =
   "rounded-[10px] border border-[#e2e8f0] bg-[#f8fafc] p-4";
 
-// 🔥 SA Banks list (missing था)
+
 const BANKS = [
   "ABSA",
   "Capitec",
@@ -45,7 +45,7 @@ const BANKS = [
   "Investec",
 ];
 
-// 🔥 Bank code mapping for TradeSafe (अगर backend चाहे)
+
 const BANK_VALUES = {
   "ABSA": "ABSA",
   "Capitec": "CAPITEC",
@@ -112,7 +112,7 @@ export default function BankAccountSetup() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
-  // 🔥 Existing TradeSafe registration info
+
   const [tradeSafeData, setTradeSafeData] = useState(null);
   const [loadingStatus, setLoadingStatus] = useState(true);
 
@@ -127,7 +127,7 @@ export default function BankAccountSetup() {
 
   const set = (key) => (e) => setForm({ ...form, [key]: e.target.value });
 
-  // ---------- Fetch TradeSafe status ----------
+ 
   useEffect(() => {
     const fetchStatus = async () => {
       try {
@@ -137,7 +137,7 @@ export default function BankAccountSetup() {
         if (data) {
           setTradeSafeData(data);
 
-          // Prefill bank details if available
+
           if (data.bankDetails) {
             setForm((prev) => ({
               ...prev,
@@ -158,7 +158,7 @@ export default function BankAccountSetup() {
     fetchStatus();
   }, []);
 
-  // ---------- Submit ----------
+
   const submit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -177,10 +177,10 @@ export default function BankAccountSetup() {
     setIsSubmitting(true);
 
     try {
-      // Map display bank name → backend value
+
       const bankValue = BANK_VALUES[form.bank] || form.bank;
 
-      // Map account type
+
       const accountTypeMap = {
         "Cheque / Current": "CHEQUE",
         "Savings": "SAVINGS",
@@ -191,9 +191,6 @@ export default function BankAccountSetup() {
         bank: bankValue,
         accountType: accountTypeMap[form.accountType] || "CHEQUE",
         accountNumber: form.accountNumber,
-        // अगर backend idNumber/mobile accept करे तो add करो
-        // idNumber: form.idNumber,
-        // mobile: form.mobile,
       });
 
       setSuccess("Bank account registered successfully!");
@@ -212,7 +209,7 @@ export default function BankAccountSetup() {
     }
   };
 
-  // ---------- Existing registered account view ----------
+
   const isRegistered = Boolean(tradeSafeData?.registered);
 
   return (
@@ -231,7 +228,7 @@ export default function BankAccountSetup() {
           </p>
         </div>
 
-        {/* Status banner (if already registered) */}
+
         {isRegistered && (
           <div className="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">
             <AlertCircle className="h-5 w-5 shrink-0" />
@@ -259,7 +256,7 @@ export default function BankAccountSetup() {
             </div>
 
             <div className="p-4 sm:p-6 flex flex-col gap-5">
-              {/* Account type */}
+
               <fieldset>
                 <legend className="text-[13px] font-bold text-[#101727] mb-3">
                   Account type
@@ -313,7 +310,6 @@ export default function BankAccountSetup() {
                 </div>
               </fieldset>
 
-              {/* Creator identity */}
               <div className={`${panel} flex flex-col gap-3.5`}>
                 <PanelHeading Icon={User} title="Creator identity">
                   This payout account is linked to your profile and will be used
@@ -338,7 +334,6 @@ export default function BankAccountSetup() {
                 </div>
               </div>
 
-              {/* Bank details */}
               <div className="flex flex-col gap-3">
                 <p className="text-[13px] font-bold text-[#101727]">
                   Bank details
@@ -403,7 +398,6 @@ export default function BankAccountSetup() {
                 </div>
               </div>
 
-              {/* Verification */}
               <div className={`${panel} flex flex-col gap-3.5`}>
                 <PanelHeading
                   Icon={ShieldCheck}
@@ -468,7 +462,6 @@ export default function BankAccountSetup() {
                 </div>
               </div>
 
-              {/* Info panel */}
               <div className="rounded-[10px] bg-[#eaf6fb] p-4 flex flex-col gap-3">
                 <PanelHeading
                   Icon={ShieldCheck}
@@ -494,7 +487,6 @@ export default function BankAccountSetup() {
                 </ul>
               </div>
 
-              {/* Flow */}
               <div className={`${panel} flex flex-col gap-3.5`}>
                 <PanelHeading Icon={Wallet} title="Escrow-to-payout flow">
                   Funds move from brand payment into escrow, then release to your
@@ -522,7 +514,7 @@ export default function BankAccountSetup() {
                 </ol>
               </div>
 
-              {/* Error / Success */}
+
               {error && (
                 <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
                   <AlertCircle className="h-5 w-5 shrink-0" />
@@ -536,7 +528,6 @@ export default function BankAccountSetup() {
                 </div>
               )}
 
-              {/* Confirm */}
               <label className="flex gap-3 items-start text-[13px] leading-normal text-[#101727] cursor-pointer">
                 <input
                   type="checkbox"
@@ -549,7 +540,6 @@ export default function BankAccountSetup() {
               </label>
             </div>
 
-            {/* Submit */}
             <div className="flex flex-wrap justify-end gap-3 bg-[#f8fafc] border-t border-[#e2e8f0] p-4 sm:p-6">
               <Link
                 to="/creator/earnings/bank-accounts"
@@ -577,7 +567,7 @@ export default function BankAccountSetup() {
             </div>
           </form>
 
-          {/* Sidebar */}
+
           <aside className="flex flex-col gap-4">
             {isRegistered && tradeSafeData && (
               <div className={`${card} shadow-none p-5 flex flex-col gap-4`}>

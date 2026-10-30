@@ -17,7 +17,7 @@ export default function CreatorsTab({ campaignId }) {
   const numericCampaignId = Number(campaignId);
   const hasValidCampaignId = Boolean(campaignId) && !Number.isNaN(numericCampaignId);
 
-  // ============ CREATORS ============
+
   const { data: response, isLoading, isError } = useQuery({
     ...getCreatorApplicationsQueryOptions(campaignId),
     enabled: hasValidCampaignId,
@@ -28,7 +28,7 @@ export default function CreatorsTab({ campaignId }) {
     return mapAcceptedApplicantsToCreators(applicants);
   }, [response]);
 
-  // ============ ✅ PAYMENT STATUS ============
+
   const [paymentStatus, setPaymentStatus] = useState(null);
 
   const { data: statusData } = useQuery({
@@ -42,7 +42,7 @@ export default function CreatorsTab({ campaignId }) {
     if (statusData?.data) setPaymentStatus(statusData.data);
   }, [statusData]);
 
-  // ============ ✅ CREATOR ESCROW MAP ============
+
   const creatorEscrowMap = useMemo(() => {
     const map = {};
     (paymentStatus?.transactions || []).forEach((tx) => {
@@ -55,7 +55,7 @@ export default function CreatorsTab({ campaignId }) {
     paymentStatus?.fundingStatus
   );
 
-  // ============ HANDLERS ============
+
   const handleViewProfile = (creator) => {
     navigate(`/brand/creators/${creator.id}/view`, {
       state: { returnTo: window.location.pathname + window.location.search },
@@ -66,7 +66,7 @@ export default function CreatorsTab({ campaignId }) {
     navigate("/brand/messages");
   };
 
-  // ============ EARLY RETURNS ============
+
   if (!hasValidCampaignId) {
     return (
       <div className="rounded-xl border border-gray-200 bg-white px-6 py-12 text-center text-sm text-gray-500">
@@ -105,7 +105,7 @@ export default function CreatorsTab({ campaignId }) {
         />
       ) : null}
 
-      {/* Campaign Funding Banner */}
+
       {creators.length > 0 && !isCampaignFunded && (
         <div className="flex items-start gap-3 rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800">
           <span className="shrink-0">⏳</span>
@@ -131,7 +131,7 @@ export default function CreatorsTab({ campaignId }) {
                 creator={creator}
                 onViewProfile={handleViewProfile}
                 onMessage={handleMessage}
-                // ✅ Escrow status only
+
                 escrowStatus={tx?.status}
                 escrowAmount={tx?.creatorNet ?? tx?.amount}
               />

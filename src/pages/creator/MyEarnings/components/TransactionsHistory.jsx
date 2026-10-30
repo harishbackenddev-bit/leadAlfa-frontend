@@ -10,7 +10,7 @@ const STATUS_COLORS = {
   FAILED: "bg-red-100 text-red-700",
 };
 
-// ✅ Custom status label mapping
+
 const STATUS_LABELS = {
   PAYOUT_TRIGGERED: "Paid",
 };
@@ -20,7 +20,7 @@ export default function TransactionsHistory({ transactions = [] }) {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [filterBy, setFilterBy] = useState("Monthly");
 
-  // ✅ Real data state
+
   const [historyData, setHistoryData] = useState({
     transactions: [],
     total: 0,
@@ -30,7 +30,7 @@ export default function TransactionsHistory({ transactions = [] }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // ✅ Fetch transactions
+
   useEffect(() => {
     const fetchHistory = async () => {
       try {
@@ -72,7 +72,7 @@ export default function TransactionsHistory({ transactions = [] }) {
     }
   };
 
-  // Format date
+
   const formatDate = (dateStr) => {
     if (!dateStr) return "—";
     const d = new Date(dateStr);
@@ -83,7 +83,7 @@ export default function TransactionsHistory({ transactions = [] }) {
     });
   };
 
-  // Get status label with custom overrides
+
   const getStatusLabel = (status) => {
     if (!status) return "—";
     if (STATUS_LABELS[status]) return STATUS_LABELS[status];

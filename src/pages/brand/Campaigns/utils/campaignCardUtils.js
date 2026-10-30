@@ -35,7 +35,7 @@ export function normalizeStatusKey(status) {
   const key = String(status || "")
     .toLowerCase()
     .trim();
-  // Unpublished API campaigns use `inactive` — show them under Draft in the UI.
+
   if (key === "inactive") return "draft";
   return STATUS_ALIASES[key] || key || "draft";
 }
@@ -81,11 +81,7 @@ function pickStat(...values) {
   return 0;
 }
 
-/**
- * Normalizes campaign stats from the brand listings/detail API into the UI shape.
- * API fields: totalApplications, totalInvitations, hiredCreators, totalSubmissions,
- * pendingReview, approvedSubmissions, revisionRequested, rejectedSubmissions.
- */
+
 export function resolveCampaignStats(campaign) {
   const api = campaign?.stats || {};
 

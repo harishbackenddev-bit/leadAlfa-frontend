@@ -100,7 +100,7 @@ export default function Creators() {
   return (
     <div className="min-h-screen bg-[#f4f6f9]">
       <div className="mx-auto max-w-[19200px] px-4 py-6 sm:px-6 lg:px-8">
-        {/* Page header */}
+
         <div className="mb-6 flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <h1 className="text-[26px] font-bold text-[#1a1a1a] sm:text-[30px]">
@@ -147,7 +147,7 @@ export default function Creators() {
           </div>
         </div>
 
-        {/* Filter panel */}
+
         {filtersOpen ? (
           <CreatorsFilters
             values={draftFilters}
@@ -159,7 +159,7 @@ export default function Creators() {
           />
         ) : null}
 
-        {/* Creators grid */}
+
         {isLoading && (
           <div className="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
             {Array.from({ length: creatorsPerPage }).map((_, index) => (

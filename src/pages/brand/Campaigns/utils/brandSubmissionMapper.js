@@ -168,10 +168,7 @@ export function buildReviewPayload({
   };
 }
 
-/**
- * Pick the review endpoint from per-asset decisions.
- * Reject wins when any asset is flagged red (advanced revision).
- */
+
 export function determineReviewAction(assets = []) {
   const summary = summarizeAssetDecisions(assets);
   if (summary.allAccepted) return "approve";

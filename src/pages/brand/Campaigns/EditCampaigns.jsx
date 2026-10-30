@@ -27,7 +27,7 @@ export default function EditCampaigns() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedbackModal, setFeedbackModal] = useState(null);
 
-  // ✅ Add funding quote state
+
   const [fundingQuote, setFundingQuote] = useState(null);
 
   const closeFeedbackModal = useCallback(() => setFeedbackModal(null), []);
@@ -83,14 +83,14 @@ export default function EditCampaigns() {
     invalidateCampaigns();
   };
 
-  // ✅ Updated with payment method
+
 const handlePublishCampaign = async (campaignPublicId) => {
   console.log("🚀 PUBLISH CLICKED (Edit)");
   console.log("   fundingQuote:", fundingQuote);
 
   if (isSubmitting) return;
 
-  // ✅ Require payment method
+
   if (!fundingQuote || !fundingQuote.paymentMethod) {
     throw new Error("Please select a payment method first");
   }
@@ -98,7 +98,7 @@ const handlePublishCampaign = async (campaignPublicId) => {
   setIsSubmitting(true);
 
   try {
-    // ✅ Pass payment method + quote version
+
     const fundRes = await fundCampaign(campaignPublicId, {
       paymentMethod: fundingQuote.paymentMethod,
       quoteVersion: fundingQuote.quoteVersion,
@@ -202,7 +202,6 @@ const handlePublishCampaign = async (campaignPublicId) => {
         onPublishCampaign={isCashDraft && !isEditLocked ? handlePublishCampaign : undefined}
         onFinalSave={openReviewStep ? undefined : handleFinalSave}
         isSubmitting={isSubmitting}
-        // ✅ Pass quote state
         fundingQuote={fundingQuote}
         onQuoteChange={setFundingQuote}
       />

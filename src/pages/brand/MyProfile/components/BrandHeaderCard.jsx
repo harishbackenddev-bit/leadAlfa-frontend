@@ -26,13 +26,6 @@ export default function BrandHeaderCard({ user, profile, editProfileLink }) {
         </div>
 
         <div className="flex w-full md:w-auto md:justify-end">
-          {/* <button
-            type="button"
-            onClick={handleEditProfile}
-            className="main-btn w-full cursor-pointer rounded-full px-7 py-3.5 text-sm text-white transition md:w-auto md:whitespace-nowrap"
-          >
-            Edit Profile
-          </button> */}
         </div>
       </div>
     </div>

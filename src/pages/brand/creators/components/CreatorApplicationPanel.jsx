@@ -6,18 +6,7 @@ import brandVideoIcon from "../../../../assets/SVGs/brands/campaigns/brandVideo.
 import { changeApplicationStatusMutation } from "../../../../services/tanstack/queryService";
 import { useNotification } from "../../../../context/NotificationContext";
 
-/**
- * Renders the creator's proposal (pitch + video pitch + accept/reject) on
- * the brand's creator profile page when navigated from a campaign's
- * Pending Creators list.
- *
- * Props:
- *  - application: the campaign-application record (must include `id`, `pitch`,
- *    `applicationMedia`).
- *  - campaignId: numeric campaign id used to invalidate the campaign-applications
- *    cache after accept/reject.
- *  - returnTo: path to navigate back to after accept/reject (campaign view).
- */
+
 export default function CreatorApplicationPanel({
   application,
   campaignId,
@@ -57,8 +46,7 @@ export default function CreatorApplicationPanel({
 
   if (!application) return null;
 
-  // If the application is already accepted/rejected, don't render the panel —
-  // the brand sees only the creator details (per requirement).
+
   const status = String(
     application?.applicationStatus || application?.status || ""
   ).toLowerCase();

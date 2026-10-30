@@ -13,7 +13,7 @@ const STATUS_CONFIG = {
   refunded: { label: "Refunded", className: "bg-orange-50 text-orange-700" },
 };
 
-// ✅ Escrow statuses
+
 const FUNDED_STATUSES = [
   "FUNDED",
   "PAYOUT_TRIGGERED",
@@ -51,7 +51,7 @@ export default function CreatorRowCard({
                 {status.label}
               </span>
 
-              {/* ✅ Escrow status badges */}
+
               {isInEscrow && !isCancelled && !isReleased && (
                 <span className="flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
                   <Lock className="h-3 w-3" />
@@ -79,7 +79,7 @@ export default function CreatorRowCard({
               {creator.rating} · {creator.jobsDone} jobs
             </p>
 
-            {/* ✅ Escrow amount display */}
+
             {isInEscrow && escrowAmount != null && (
               <p className="mt-1 text-xs font-medium text-emerald-700">
                 🔒 R {Number(escrowAmount).toFixed(2)} secured
@@ -101,7 +101,7 @@ export default function CreatorRowCard({
           </div>
         </div>
 
-        {/* ✅ Actions — Only View Profile + Message */}
+   
         <div className="flex flex-wrap justify-end gap-2 lg:shrink-0">
           <Button
             type="button"

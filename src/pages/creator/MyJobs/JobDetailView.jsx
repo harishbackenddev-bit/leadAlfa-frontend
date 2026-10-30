@@ -86,7 +86,7 @@ export default function JobDetailView() {
     activeCampaignsResp?.data?.campaigns ||
     [];
 
-  // Merge my-jobs + creator/jobs so JOB-… id and workStatus are available.
+ 
   const baseJobMeta = useMemo(() => {
     const fromMyJobs = buildJobCardForRoute(id, jobs, activeCampaignsList);
     const fromCreatorJobs = buildJobCardForRoute(
@@ -116,7 +116,7 @@ export default function JobDetailView() {
       payment: fromCreatorJobs?.payment || fromMyJobs?.payment,
       brandName: fromCreatorJobs?.brandName || fromMyJobs?.brandName,
       brandLogo: fromCreatorJobs?.brandLogo || fromMyJobs?.brandLogo,
-      // Application lifecycle (pending/rejected/accepted) comes from my-applications.
+     
       status: fromMyJobs?.status || fromCreatorJobs?.status,
       campaign: {
         ...(fromMyJobs?.campaign || {}),
@@ -239,7 +239,7 @@ export default function JobDetailView() {
     });
   }, [isRevision, submission, displayJobMeta, displayCampaign]);
 
-  // Always show full submission history (all attempts, notes, approved assets).
+
   const yourSubmission = useMemo(
     () => mapSubmissionToYourSubmissionUI(submission),
     [submission]

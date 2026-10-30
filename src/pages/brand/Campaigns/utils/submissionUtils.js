@@ -14,7 +14,7 @@ export const SUBMISSION_STATUS = {
   },
 };
 
-/** Tap cycle: normal → approved → revision → rejected → normal */
+
 export const ASSET_DECISIONS = ["normal", "accepted", "revision", "rejected"];
 
 export function mapReviewStatusToDecision(reviewStatus) {

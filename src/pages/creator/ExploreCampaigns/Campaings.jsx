@@ -82,8 +82,7 @@ export default function Campaigns() {
   );
 
   const filteredCampaigns = useMemo(() => {
-    // Hide every campaign the creator has already applied to (pending or
-    // beyond) — they live in My Jobs now and shouldn't reappear in Explore.
+  
     let result = allCampaigns.filter((c) => !hasApplied(c.id));
     result = filterGridCampaigns(result, searchQuery);
 

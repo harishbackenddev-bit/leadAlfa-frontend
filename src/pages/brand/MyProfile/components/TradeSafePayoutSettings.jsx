@@ -38,23 +38,13 @@ export default function TradeSafePayoutSettings() {
     accountNumber: "",
   });
 
-  // ============================================================
-  // FETCH STATUS
-  // ============================================================
   useEffect(() => {
     const fetchStatus = async () => {
       try {
         setIsLoading(true);
         const res = await getTradeSafeStatus();
 
-        console.log("📊 Full response:", res);
-
-        // ✅ Response shape: { success: true, data: { registered, ... } }
-        // getTradeSafeStatus already returns res.data OR res.data.data
         const data = res?.data || res;
-
-        console.log("📊 Extracted data:", data);
-        console.log("📊 data.registered:", data?.registered);
 
         if (data) {
           setTradeSafeData(data);
@@ -111,7 +101,6 @@ export default function TradeSafePayoutSettings() {
 
       setSuccess("Payout settings registered successfully!");
 
-      // Refetch status
       const statusRes = await getTradeSafeStatus();
       const statusData = statusRes?.data || statusRes;
 
@@ -127,9 +116,6 @@ export default function TradeSafePayoutSettings() {
     }
   };
 
-  // ============================================================
-  // LOADING
-  // ============================================================
   if (isLoading) {
     return (
       <div className="rounded-lg border border-gray-100 bg-white p-6 shadow-sm">
@@ -144,9 +130,6 @@ export default function TradeSafePayoutSettings() {
     );
   }
 
-  // ============================================================
-  // ✅ REGISTERED — SHOW DETAILS ONLY (NO FORM)
-  // ============================================================
   if (isRegistered && tradeSafeData) {
     const statusValue =
       tradeSafeData.status || tradeSafeData.tradeSafeStatus || "PENDING";
@@ -162,7 +145,6 @@ export default function TradeSafePayoutSettings() {
           Payout Settings (TradeSafe)
         </h3>
 
-        {/* Status Banner */}
         <div
           className={`flex items-start gap-3 rounded-lg border p-4 text-sm ${
             isVerified
@@ -193,7 +175,6 @@ export default function TradeSafePayoutSettings() {
           </div>
         </div>
 
-        {/* TradeSafe Details */}
         <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
           <DetailRow
             label="TradeSafe User ID"
@@ -248,9 +229,6 @@ export default function TradeSafePayoutSettings() {
     );
   }
 
-  // ============================================================
-  // ❌ NOT REGISTERED — SHOW REGISTRATION FORM
-  // ============================================================
   return (
     <div className="rounded-lg border border-gray-100 bg-white p-6 shadow-sm">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">
@@ -365,9 +343,6 @@ export default function TradeSafePayoutSettings() {
   );
 }
 
-// ============================================================
-// HELPER COMPONENTS
-// ============================================================
 function DetailRow({ label, value, mono }) {
   return (
     <div>

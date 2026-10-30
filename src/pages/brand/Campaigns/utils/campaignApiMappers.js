@@ -1,6 +1,6 @@
 import { CAMPAIGN_ADD_ONS } from "../data/campaignCreatePricingData";
 
-/** UI wizard values → API `videoLength` */
+
 export const VIDEO_LENGTH_TO_API = {
   starter: "15sec",
   standard: "30sec",
@@ -21,9 +21,7 @@ export function fromApiVideoLength(apiValue) {
   return VIDEO_LENGTH_FROM_API[apiValue] || apiValue;
 }
 
-/**
- * API may return `{ campaign: {...} }` or a flat campaign object with `publicId`.
- */
+
 export function normalizeCampaignSaveResponse(response) {
   if (!response || typeof response !== "object") return null;
 

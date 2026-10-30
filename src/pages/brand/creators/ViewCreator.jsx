@@ -17,9 +17,7 @@ export default function ViewCreator() {
   const [videoModal, setVideoModal] = useState({ open: false, url: "", title: "" });
   const [inviteOpen, setInviteOpen] = useState(false);
 
-  // When navigated from a campaign's "Pending Creators" → View Proposal modal,
-  // we get the full application record + the originating campaign so we can
-  // render the proposal section + accept/reject controls inline.
+
   const application = location.state?.application || null;
   const applicationCampaignId = location.state?.campaignId || null;
   const returnTo = location.state?.returnTo || null;

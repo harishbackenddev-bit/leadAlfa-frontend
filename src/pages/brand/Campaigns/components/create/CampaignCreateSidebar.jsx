@@ -60,7 +60,7 @@ export default function CampaignCreateSidebar({
       ? `${invoice.numberOfCreators} × ${formatAmountOrDash(invoice.perCreatorRate)}`
       : null;
 
-  // ✅ Final total = invoice.totalDue + TradeSafe fee (from fundingQuote)
+
   const finalTotal =
     showAmounts && invoice.totalDue != null
       ? invoice.totalDue + (fundingQuote?.tradesafeFeeInclVat || 0)
@@ -68,7 +68,7 @@ export default function CampaignCreateSidebar({
 
   return (
     <aside className="space-y-4 lg:sticky lg:top-6 lg:self-start">
-      {/* Progress */}
+
       <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
         <div className="mb-3 flex items-center justify-between">
           <p className="text-xs font-semibold uppercase tracking-wide text-[#64748B]">Progress</p>
@@ -82,7 +82,7 @@ export default function CampaignCreateSidebar({
         </p>
       </div>
 
-      {/* Invoice Summary */}
+
       <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
         <h3 className="text-base font-semibold text-[#111827]">Invoice Summary</h3>
         <p className="mt-1 text-xs text-[#64748B]">
@@ -132,7 +132,6 @@ export default function CampaignCreateSidebar({
           <SummaryRow label="VAT (SARS @ 15%)" value={showAmounts ? formatAmountOrDash(invoice.vat) : "—"} muted />
         </div>
 
-        {/* ✅ TradeSafe Fee (only if selected) */}
         {showAmounts && fundingQuote && (
           <div className="mt-4 space-y-2.5 border-t border-[#E2E8F0] pt-4">
             <SummaryRow
@@ -146,7 +145,6 @@ export default function CampaignCreateSidebar({
           </div>
         )}
 
-        {/* Total */}
         <div className="mt-4 rounded-xl bg-[#EFF6FF] px-4 py-3">
           <SummaryRow label="Total Amount Due" value={showAmounts ? formatAmountOrDash(finalTotal) : "—"} bold />
         </div>

@@ -138,8 +138,7 @@ export default function CampaignDetailPage() {
     if (!detailWithAlerts) return {};
 
     const badges = { ...detailWithAlerts.tabBadges };
-    // Only live API counts may show as tab badges. Dummy / supplemental
-    // counts (feedback, contracts, etc.) must never appear.
+
     delete badges.proposals;
     delete badges.submissions;
     delete badges.feedback;

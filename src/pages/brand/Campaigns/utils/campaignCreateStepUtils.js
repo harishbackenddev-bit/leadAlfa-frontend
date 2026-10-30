@@ -24,10 +24,10 @@ const hasMoodboardMedia = (moodboards, existingMoodboardUrls) => {
   return false;
 };
 
-/** Maximum creators allowed per campaign in the create/edit wizard. */
+
 export const MAX_CAMPAIGN_CREATORS = 20;
 
-/** Digits only, clamped 1–MAX. Empty string allowed while typing. */
+
 export function sanitizeCreatorCountInput(raw) {
   const digits = String(raw ?? "").replace(/\D/g, "");
   if (!digits) return "";

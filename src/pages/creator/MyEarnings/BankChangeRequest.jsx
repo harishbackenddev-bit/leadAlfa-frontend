@@ -68,7 +68,7 @@ function Notice() {
   );
 }
 
-// 🔥 Displays TradeSafe User ID as the account identifier
+
 function AccountRow({ tradeSafeUserId, children }) {
   return (
     <div className="flex gap-3 items-center">
@@ -96,7 +96,7 @@ export default function BankChangeRequest() {
   const [loadingAccount, setLoadingAccount] = useState(true);
   const [isRegistered, setIsRegistered] = useState(false);
 
-  // 🔥 Submit states
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
 
@@ -108,7 +108,7 @@ export default function BankChangeRequest() {
 
   const set = (key) => (e) => setForm({ ...form, [key]: e.target.value });
 
-  // ---------- Fetch TradeSafe status ----------
+
   useEffect(() => {
     const fetchStatus = async () => {
       try {
@@ -130,7 +130,7 @@ export default function BankChangeRequest() {
     fetchStatus();
   }, []);
 
-  // ---------- Submit (API-integrated) ----------
+
   const submit = async (e) => {
     e.preventDefault();
     setSubmitError(null);
@@ -183,7 +183,7 @@ export default function BankChangeRequest() {
     }
   };
 
-  // ---------- LOADING ----------
+
   if (loadingAccount) {
     return (
       <div className="min-h-screen bg-[#f7f9fb]">
@@ -197,7 +197,7 @@ export default function BankChangeRequest() {
     );
   }
 
-  // ---------- NOT REGISTERED ----------
+
   if (!isRegistered) {
     return (
       <div className="min-h-screen bg-[#f7f9fb]">
@@ -236,7 +236,7 @@ export default function BankChangeRequest() {
     );
   }
 
-  // ---------- REGISTERED ----------
+
   const tradeSafeUserId = tradeSafeData?.tradeSafeUserId;
 
   return (
@@ -333,7 +333,7 @@ export default function BankChangeRequest() {
               </p>
             </div>
 
-            {/* 🔥 Error display */}
+   
             {submitError && (
               <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
                 <AlertCircle className="h-5 w-5 shrink-0" />
@@ -417,9 +417,7 @@ export default function BankChangeRequest() {
   );
 }
 
-// ============================================================
-// SUBMITTED VIEW
-// ============================================================
+
 export function BankChangeSubmitted() {
   const { state } = useLocation();
   const user = useAppSelector(selectUser);

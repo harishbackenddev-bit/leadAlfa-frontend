@@ -44,9 +44,7 @@ export default function CreatorPayoutSettings() {
     accountType: "CHEQUE",
   });
 
-  // ============================================================
-  // FETCH STATUS
-  // ============================================================
+
   useEffect(() => {
     const fetchStatus = async () => {
       try {
@@ -71,9 +69,7 @@ export default function CreatorPayoutSettings() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ============================================================
-  // SUBMIT
-  // ============================================================
+
   const handleSubmit = async () => {
     setError(null);
     setSuccess(null);
@@ -114,9 +110,7 @@ export default function CreatorPayoutSettings() {
     }
   };
 
-  // ============================================================
-  // LOADING
-  // ============================================================
+
   if (isLoading) {
     return (
       <div className="bg-white rounded-xl p-6 shadow-sm">
@@ -134,9 +128,7 @@ export default function CreatorPayoutSettings() {
   const isRegistered = Boolean(statusData?.registered);
   const isVerified = statusData?.status === "VERIFIED";
 
-  // ============================================================
-  // ✅ REGISTERED — SHOW DETAILS ONLY
-  // ============================================================
+
   if (isRegistered) {
     return (
       <div className="bg-white rounded-xl p-6 shadow-sm">
@@ -209,9 +201,7 @@ export default function CreatorPayoutSettings() {
     );
   }
 
-  // ============================================================
-  // ❌ NOT REGISTERED — SHOW FORM
-  // ============================================================
+
   return (
     <div className="bg-white rounded-xl p-6 shadow-sm">
       <h2 className="text-2xl font-extrabold font-anton text-gray-900 mb-4">

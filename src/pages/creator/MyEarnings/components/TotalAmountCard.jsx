@@ -12,7 +12,7 @@ export default function TotalAmountCard() {
   });
   const [isLoading, setIsLoading] = useState(true);
 
-  // ✅ Fetch balance from TradeSafe
+
   useEffect(() => {
     const fetchBalance = async () => {
       try {
@@ -30,7 +30,7 @@ export default function TotalAmountCard() {
     };
 
     fetchBalance();
-  }, [showWithdrawModal]); // refetch when modal closes
+  }, [showWithdrawModal]); 
 
   const totalAmount = balanceData?.balance || 0;
 

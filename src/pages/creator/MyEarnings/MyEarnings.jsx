@@ -47,9 +47,7 @@ const sumWhere = (rows, statuses) => {
 };
 
 export default function MyEarnings() {
-  // ============================================================
-  // 🔥 STATE
-  // ============================================================
+
   const [allTransactions, setAllTransactions] = useState([]);
   const [available, setAvailable] = useState(0);
 
@@ -64,9 +62,7 @@ export default function MyEarnings() {
   const [page, setPage] = useState(1);
   const [showWithdraw, setShowWithdraw] = useState(false);
 
-  // ============================================================
-  // 🔥 API CALLS
-  // ============================================================
+
   const fetchBalance = useCallback(async () => {
     try {
       setBalanceLoading(true);
@@ -111,9 +107,7 @@ export default function MyEarnings() {
     fetchTransactions(1);
   }, [fetchBalance, fetchTransactions]);
 
-  // ============================================================
-  // 🔥 DERIVED DATA
-  // ============================================================
+
   const all = allTransactions.map(toRow);
   const earned = sumWhere(all, ["PAYOUT_TRIGGERED", "COMPLETED"]);
   const escrow = sumWhere(all, ["FUNDED"]);
@@ -163,9 +157,7 @@ export default function MyEarnings() {
   const current = Math.min(page, pages);
   const visible = rows.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
 
-  // ============================================================
-  // 🔥 HANDLERS
-  // ============================================================
+
   const exportCsv = () => {
     const csv = [
       "Transaction,Details,Party,Date,Status,Amount",
@@ -187,14 +179,12 @@ export default function MyEarnings() {
     setPage(1);
   };
 
-  // 🔥 Called when withdrawal succeeds
+
   const handleWithdrawSuccess = async () => {
     await Promise.all([fetchBalance(), fetchTransactions(1)]);
   };
 
-  // ============================================================
-  // 🔥 LOADING
-  // ============================================================
+
   if (balanceLoading || transactionsLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#f7f9fb]">

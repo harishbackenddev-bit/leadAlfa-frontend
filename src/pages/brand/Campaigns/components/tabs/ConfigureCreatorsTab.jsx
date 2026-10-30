@@ -21,11 +21,11 @@ export default function ConfigureCreatorsTab({
   const [error, setError] = useState("");
   const [processingId, setProcessingId] = useState(null);
 
-  // ✅ Payment status state
+
   const [paymentStatus, setPaymentStatus] = useState(null);
   const [isLoadingStatus, setIsLoadingStatus] = useState(true);
 
-  // ========== FETCH APPLICANTS ==========
+
   const {
     data: applicantsData,
     isLoading: isLoadingApplicants,
@@ -37,7 +37,7 @@ export default function ConfigureCreatorsTab({
     staleTime: 5 * 60 * 1000,
   });
 
-  // ========== FETCH PAYMENT STATUS ==========
+
   const { data: statusData, refetch: refetchStatus } = useQuery({
     queryKey: ["campaign-payment-status", campaignId],
     queryFn: () => getCampaignPaymentStatus(campaignId),
@@ -45,17 +45,17 @@ export default function ConfigureCreatorsTab({
     staleTime: 2 * 60 * 1000,
   });
 
-  // ========== CHECK PAYMENT STATUS ==========
+
   useEffect(() => {
     if (statusData?.data) {
       const data = statusData.data;
-      console.log("📊 Payment Status Data:", data);
+
       setPaymentStatus(data);
     }
     setIsLoadingStatus(false);
   }, [statusData]);
 
-  // ========== PROCESS ACCEPTED APPLICANTS ==========
+
   useEffect(() => {
     if (applicantsData?.applicants) {
       console.log("📊 Applicants Data:", applicantsData);
@@ -99,7 +99,7 @@ export default function ConfigureCreatorsTab({
         };
       });
 
-      console.log("📊 Mapped Creators:", mappedCreators);
+
       setCreators(mappedCreators);
 
       const totalBudget = mappedCreators.reduce(
@@ -120,15 +120,13 @@ export default function ConfigureCreatorsTab({
     }
   }, [applicantsData]);
 
-  // ============================================================
-  // ✅ HANDLE SELECT & FUND CREATOR
-  // ============================================================
+
   const handleSelectAndFund = async (creator) => {
     setProcessingId(creator.id);
     setError("");
 
     try {
-      // STEP 1: Create escrow (TradeSafe transaction)
+
       const res = await selectCreator(campaignId, {
         creatorId: creator.id,
         creatorAmount: creator.budget,
@@ -139,12 +137,12 @@ export default function ConfigureCreatorsTab({
         throw new Error("Failed to create escrow transaction.");
       }
 
-      console.log("✅ Escrow created:", data);
+
 
       // STEP 2: Fund from brand's wallet
       await fundCreator(data.transactionId);
 
-      console.log("✅ Creator funded from wallet");
+
 
       // STEP 3: Refresh data
       await refetch();
@@ -157,7 +155,7 @@ export default function ConfigureCreatorsTab({
     }
   };
 
-  // ========== LOADING ==========
+
   if (isLoadingApplicants || isLoadingStatus || isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -167,7 +165,7 @@ export default function ConfigureCreatorsTab({
     );
   }
 
-  // ========== ERROR ==========
+
   if (error) {
     return (
       <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -191,7 +189,7 @@ export default function ConfigureCreatorsTab({
     );
   }
 
-  // ========== NO CREATORS ==========
+
   if (creators.length === 0) {
     return (
       <div className="text-center py-12">
@@ -209,12 +207,12 @@ export default function ConfigureCreatorsTab({
     );
   }
 
-  // ========== CAMPAIGN FUNDED CHECK ==========
+
   const isCampaignFunded = ["FUNDS_RECEIVED", "FUNDED"].includes(
     paymentStatus?.fundingStatus
   );
 
-  // ========== RENDER ==========
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -241,7 +239,7 @@ export default function ConfigureCreatorsTab({
         </div>
       </div>
 
-      {/* ========== BUDGET STATUS ========== */}
+
       {paymentStatus?.budget && (
         <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
           <h4 className="text-sm font-semibold text-blue-900 mb-2">
@@ -276,7 +274,7 @@ export default function ConfigureCreatorsTab({
         </div>
       )}
 
-      {/* ========== CREATOR LIST ========== */}
+
       <div className="space-y-3">
         {creators.map((creator) => {
           // Find this creator's transaction in payment status
@@ -377,7 +375,6 @@ export default function ConfigureCreatorsTab({
         })}
       </div>
 
-      {/* ========== SUMMARY ========== */}
       {creators.length > 0 && (
         <div className="mt-4 pt-4 border-t border-gray-200">
           <div className="space-y-2">

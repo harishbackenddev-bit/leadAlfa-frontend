@@ -24,7 +24,7 @@ export default function WithdrawMoney({
   });
   const [error, setError] = useState("");
 
-  // ---------- Reset on close ----------
+
   useEffect(() => {
     if (!isOpen) {
       setStep("amount");
@@ -41,7 +41,7 @@ export default function WithdrawMoney({
     }
   }, [isOpen]);
 
-  // ---------- Lock body scroll ----------
+
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "";
     return () => {
@@ -49,7 +49,6 @@ export default function WithdrawMoney({
     };
   }, [isOpen]);
 
-  // ---------- Derived values ----------
   const amount = useMemo(() => parseFloat(withdrawAmount) || 0, [withdrawAmount]);
 
   const stripeFee = useMemo(
@@ -67,7 +66,7 @@ export default function WithdrawMoney({
     [amount, totalAmount]
   );
 
-  // ---------- Handlers ----------
+
   const handleQuickSelect = (value) => {
     setError("");
     if (value === "all") {
@@ -119,7 +118,7 @@ export default function WithdrawMoney({
     setStep("loading");
 
     try {
-      // Optional: pass a callback from parent that handles the API call
+   
       if (typeof onWithdraw === "function") {
         await onWithdraw({
           amount,
@@ -130,7 +129,7 @@ export default function WithdrawMoney({
           stripeFee,
         });
       } else {
-        // Simulated delay if no callback provided
+
         await new Promise((resolve) => setTimeout(resolve, 1500));
       }
       setStep("success");
@@ -316,9 +315,7 @@ export default function WithdrawMoney({
   );
 }
 
-// ============================================================================
-// Sub-components
-// ============================================================================
+
 
 function Header({ title, onClose }) {
   return (

@@ -33,7 +33,7 @@ export default function MyProfile() {
           <CompanyInformation user={user} profile={profile} />
         </div>
 
-        {/* ✅ TradeSafe Payout Settings */}
+
         <div className="mb-6">
           <TradeSafePayoutSettings />
         </div>

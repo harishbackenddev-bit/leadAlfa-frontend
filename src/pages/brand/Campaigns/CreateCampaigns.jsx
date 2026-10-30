@@ -53,7 +53,7 @@ export default function CreateCampaigns() {
 
   setIsSubmitting(true);
   try {
-    // STEP 1: Fund
+
     const fundRes = await fundCampaign(campaignPublicId, {
       paymentMethod: fundingQuote.paymentMethod,
       quoteVersion: fundingQuote.quoteVersion,
@@ -63,14 +63,14 @@ export default function CreateCampaigns() {
     const walletUrl = fundData?.fundingBatch?.walletDepositUrl;
     if (!walletUrl) throw new Error("No wallet deposit link received.");
 
-    // Open payment tab
+
     window.open(walletUrl, "_blank", "noopener,noreferrer");
 
-    // STEP 2: Poll for payment status BEFORE publishing
+ 
     const paid = await pollFundingStatus(fundData.fundingBatch.id);
     if (!paid) throw new Error("Payment not completed.");
 
-    // STEP 3: Only now publish
+
     const response = await publishCampaign(campaignPublicId);
     if (!response?.campaignPublicId && !response?.invoicePublicId) {
       throw new Error(response?.message || "Failed to publish campaign.");

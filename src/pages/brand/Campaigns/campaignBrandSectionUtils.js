@@ -1,13 +1,9 @@
-/**
- * Derive which brand campaign detail sections should render, based on API payload.
- * Supports multiple possible backend field names; extend as contracts stabilize.
- */
 
 function isNonemptyObject(val) {
   return val != null && typeof val === "object" && Object.keys(val).length > 0;
 }
 
-/** First accepted / assigned creator-like object from campaign. */
+
 export function pickActiveCampaignCreator(campaign) {
   if (!campaign || typeof campaign !== "object") return null;
 
@@ -112,7 +108,7 @@ export function pickAssignmentPayload(campaign) {
   return null;
 }
 
-/** Normalized rows for ShippingDetails2 table, or null if none. */
+
 export function getShippingDetails2Rows(campaign) {
   if (!campaign) return null;
   const raw =

@@ -5,7 +5,7 @@ const MAX_REVISIONS = 3;
 const REVISION_STATUS_TO_JOB = {
   pending_review: "in_review",
   revision_requested: "in_revision",
-  /** Reject is a major revision — creator must resubmit (same as revision_requested). */
+
   rejected: "in_revision",
   approved: "completed",
 };
@@ -21,10 +21,7 @@ function formatDisplayDate(value) {
   });
 }
 
-/**
- * Normalize GET /creator/jobs/:id/submission payloads.
- * Supports `{ submission }` wrapper and a bare submission object.
- */
+
 export function parseWorkSubmissionResponse(response) {
   if (!response) return { submission: null, message: null };
 
@@ -35,7 +32,7 @@ export function parseWorkSubmissionResponse(response) {
     };
   }
 
-  // Bare submission object (has revisions and SUB- publicId).
+
   if (
     Array.isArray(response.revisions) ||
     String(response.publicId || "").startsWith("SUB-")
@@ -85,11 +82,7 @@ export function mapAssetToFile(asset) {
   };
 }
 
-/**
- * Brand stores revision notes + rejection notes joined with `\n\n`
- * (see brandSubmissionMapper.buildReviewPayload).
- * First segment = revision feedback, second = rejection feedback.
- */
+
 export function parseBrandFeedback(raw) {
   if (!raw || !String(raw).trim()) {
     return { revisionNotes: "", rejectionNotes: "", message: "" };
@@ -194,10 +187,7 @@ function mapRevisionAttempt(rev, index, total) {
   };
 }
 
-/**
- * Map GET /submission into full submission history for the creator job detail page.
- * Includes every revision attempt (files, notes, brand feedback, asset statuses).
- */
+
 export function mapSubmissionToYourSubmissionUI(submission) {
   if (!submission) return null;
 
@@ -240,10 +230,7 @@ export function mapSubmissionToYourSubmissionUI(submission) {
   };
 }
 
-/**
- * Map GET /submission response into revision UI payload for JobDetailView.
- * Only call when the creator must resubmit (revision_requested / rejected).
- */
+
 export function mapSubmissionToRevisionUI(submission, jobMeta = {}) {
   if (!submission) return null;
 
@@ -273,7 +260,7 @@ export function mapSubmissionToRevisionUI(submission, jobMeta = {}) {
     })
     .filter(Boolean);
 
-  // Show the revision the brand reviewed (needs resubmit), not an empty draft.
+
   const displayRevision = revisionNeedsResubmit(latest)
     ? latest
     : revisions

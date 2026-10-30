@@ -27,7 +27,7 @@ import ErrorState from "../../../../../components/common/ErrorState";
 import { SUBMISSION_STATUS } from "../../utils/submissionUtils";
 import { useNavigate } from "react-router-dom";
 
-// ✅ Statuses that mean "already released"
+
 const RELEASED_STATUSES = ["PAYOUT_TRIGGERED", "RELEASED", "COMPLETED"];
 const FUNDED_STATUSES = ["FUNDED", ...RELEASED_STATUSES];
 
@@ -70,15 +70,13 @@ export default function SubmissionsTab({ campaignPublicId, campaignId }) {
   const [releasedIds, setReleasedIds] = useState({});
   const [escrowMap, setEscrowMap] = useState({});
   
-  // ✅ NEW: Modal state for "fund escrow first"
+
   const [showFundEscrowModal, setShowFundEscrowModal] = useState(false);
   const [pendingSubmission, setPendingSubmission] = useState(null);
 
   const hasCampaignPublicId = Boolean(campaignPublicId);
 
-  // ============================================================
-  // SUBMISSIONS LIST
-  // ============================================================
+
   const {
     data: listResponse,
     isLoading: isListLoading,
@@ -94,9 +92,7 @@ export default function SubmissionsTab({ campaignPublicId, campaignId }) {
     enabled: hasCampaignPublicId,
   });
 
-  // ============================================================
-  // ESCROW / PAYMENT STATUS
-  // ============================================================
+
   const { data: paymentStatusResponse, refetch: refetchPaymentStatus } = useQuery({
     queryKey: ["campaign-payment-status", campaignId || campaignPublicId],
     queryFn: () => getCampaignPaymentStatus(campaignId || campaignPublicId),
@@ -194,26 +190,23 @@ export default function SubmissionsTab({ campaignPublicId, campaignId }) {
     [campaignPublicId]
   );
 
-  // ============================================================
-  // ✅ REVIEW BUTTON HANDLER — Check escrow first
-  // ============================================================
+
   const handleOpenReview = useCallback((row) => {
     const escrowTx = escrowMap[row.creatorId];
     const escrowStatus = escrowTx?.status;
     const isFunded = FUNDED_STATUSES.includes(escrowStatus);
 
-    // ✅ Check escrow funded before opening review
+
     if (!isFunded) {
       setPendingSubmission(row);
       setShowFundEscrowModal(true);
       return;
     }
 
-    // Escrow funded — open drawer
+
     setActiveSubmissionKey(row.submissionPublicId);
   }, [escrowMap]);
 
-  // ✅ Navigate to Creators tab
   const handleGoToCreatorsTab = useCallback(() => {
     setShowFundEscrowModal(false);
     setPendingSubmission(null);
@@ -225,9 +218,7 @@ export default function SubmissionsTab({ campaignPublicId, campaignId }) {
     setPendingSubmission(null);
   }, []);
 
-  // ============================================================
-  // APPROVE + AUTO-RELEASE FUNDS
-  // ============================================================
+
   const { mutate: approve, isPending: isApproving } = useMutation({
     ...approveSubmissionMutation(campaignPublicId),
     onSuccess: async (_data, submissionPublicId) => {
@@ -491,7 +482,7 @@ export default function SubmissionsTab({ campaignPublicId, campaignId }) {
                             <span className="h-2 w-2 shrink-0 rounded-full bg-red-500" />
                           ) : null}
 
-                          {/* ✅ Review Button */}
+          
                           <button
                             type="button"
                             onClick={() => handleOpenReview(row)}
@@ -501,7 +492,7 @@ export default function SubmissionsTab({ campaignPublicId, campaignId }) {
                             Review
                           </button>
 
-                          {/* ✅ Funds Released Badge */}
+             
                           {isReleased && (
                             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
                               <CheckCircle2 className="h-3.5 w-3.5" />
