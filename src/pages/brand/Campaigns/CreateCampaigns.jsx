@@ -95,7 +95,7 @@ export default function CreateCampaigns() {
       const walletUrl = fundData?.fundingBatch?.walletDepositUrl;
       if (!walletUrl) throw new Error("No wallet deposit link received.");
 
-      window.open(walletUrl, "_blank", "noopener,noreferrer");
+      window.location.href = walletUrl;
 
       const paid = await pollFundingStatus(campaignPublicId);
       if (!paid) throw new Error("Payment not completed.");
