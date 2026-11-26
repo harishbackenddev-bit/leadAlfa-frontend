@@ -48,8 +48,8 @@ export default function InvitationGridCard({
   const isDeclined = status === "declined";
 
   const handleApply = () => {
-    if (publicId) {
-      navigate(`/creator/campaigns/${publicId}/apply`);
+    if (campaignPublicId) {
+      navigate(`/creator/campaigns/${campaignPublicId}/apply`);
     }
   };
 
@@ -172,7 +172,7 @@ export default function InvitationGridCard({
                 type="button"
                 className="w-full rounded-xl bg-[#0c7bb3] text-sm font-semibold hover:bg-[#0a6a9c]"
                 onClick={handleApply}
-                disabled={!publicId}
+                disabled={!campaignPublicId}
               >
                 Apply to Campaign
               </Button>
