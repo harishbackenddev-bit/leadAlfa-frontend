@@ -129,7 +129,7 @@ export default function CampaignCreateSidebar({
           <SummaryRow label="Campaign Budget" value={showAmounts ? formatAmountOrDash(invoice.cartSubtotal) : "—"} muted />
           <SummaryRow label="Platform Fee (5%)" value={showAmounts ? formatAmountOrDash(invoice.serviceFee) : "—"} muted />
           <SummaryRow label="Amount Before Tax" value={showAmounts ? formatAmountOrDash(invoice.amountBeforeTax) : "—"} muted />
-          <SummaryRow label="VAT (SARS @ 15%)" value={showAmounts ? formatAmountOrDash(invoice.vat) : "—"} muted />
+          {/* <SummaryRow label="VAT (SARS @ 15%)" value={showAmounts ? formatAmountOrDash(invoice.vat) : "—"} muted /> */}
         </div>
 
         {showAmounts && fundingQuote && (
