@@ -41,4 +41,4 @@ export const CAMPAIGN_ADD_ONS = [
 ];
 
 export const SERVICE_FEE_RATE = 0.05;
-// export const VAT_RATE = 0.15;
+export const VAT_RATE = 0;
