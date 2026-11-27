@@ -64,9 +64,8 @@ export default function InvitationGridCard({
           </div>
         )}
         <span
-          className={`absolute right-3 top-3 rounded-full px-2.5 py-1 text-xs font-semibold ${
-            STATUS_STYLES[status] || STATUS_STYLES.pending
-          }`}
+          className={`absolute right-3 top-3 rounded-full px-2.5 py-1 text-xs font-semibold ${STATUS_STYLES[status] || STATUS_STYLES.pending
+            }`}
         >
           {STATUS_LABELS[status] || "Pending"}
         </span>
@@ -167,24 +166,14 @@ export default function InvitationGridCard({
               </Button>
             </>
           ) : isAccepted ? (
-            <>
-              <Button
-                type="button"
-                className="w-full rounded-xl bg-[#0c7bb3] text-sm font-semibold hover:bg-[#0a6a9c]"
-                onClick={handleApply}
-                disabled={!campaignPublicId}
-              >
-                Apply to Campaign
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full rounded-xl border-[#0c7bb3] text-sm font-semibold text-[#0c7bb3] hover:bg-blue-50"
-                onClick={() => onViewDetails?.(publicId)}
-              >
-                View Details
-              </Button>
-            </>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full rounded-xl border-[#0c7bb3] text-sm font-semibold text-[#0c7bb3] hover:bg-blue-50"
+              onClick={() => onViewDetails?.(publicId)}
+            >
+              View Details
+            </Button>
           ) : isDeclined ? (
             <Button
               type="button"
