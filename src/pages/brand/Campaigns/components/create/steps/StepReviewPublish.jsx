@@ -52,6 +52,8 @@ export default function StepReviewPublish({
   campaignPublicId,
   fundingQuote,
   onQuoteChange,
+  /** false for already-paid / published campaigns: no payment UI at all. */
+  paymentRequired = true,
 }) {
   const videoPkg = getVideoLengthPackage(formData.videoLength);
   const selectedAddOnLabels = CAMPAIGN_ADD_ONS.filter((addon) =>
@@ -69,7 +71,7 @@ export default function StepReviewPublish({
 
 
   useEffect(() => {
-    if (!campaignPublicId || !showAmounts) return;
+    if (!paymentRequired || !campaignPublicId || !showAmounts) return;
 
     const fetchMethods = async () => {
       try {
@@ -86,7 +88,7 @@ export default function StepReviewPublish({
     };
 
     fetchMethods();
-  }, [campaignPublicId, showAmounts]);
+  }, [campaignPublicId, showAmounts, paymentRequired]);
 
 
   const handleSelectMethod = async (code) => {
@@ -194,7 +196,17 @@ export default function StepReviewPublish({
           />
         </section>
 
-        {showAmounts && (
+        {showAmounts && !paymentRequired && (
+          <section className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
+            <p className="text-sm font-semibold text-emerald-900">Payment already completed</p>
+            <p className="mt-1 text-xs text-emerald-800">
+              This campaign has been paid for. Saving your changes does not require any new
+              payment. Pricing, creator count and add-ons can no longer be changed.
+            </p>
+          </section>
+        )}
+
+        {showAmounts && paymentRequired && (
           <section className="rounded-2xl border border-[#e5e7eb] bg-white p-5">
             <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[#94A3B8]">
               Payment Method

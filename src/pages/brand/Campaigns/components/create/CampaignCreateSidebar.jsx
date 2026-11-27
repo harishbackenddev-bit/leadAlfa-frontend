@@ -50,6 +50,9 @@ export default function CampaignCreateSidebar({
   campaignPublicId,
   fundingQuote,
   onQuoteChange,
+  /** false for published campaigns: no payment method needed to save changes. */
+  paymentRequired = true,
+  showSaveDraft = true,
 }) {
   const progress = getCampaignCreateProgressPercent(currentStep);
   const stepMeta = CAMPAIGN_CREATE_STEPS[currentStep - 1];
@@ -166,26 +169,32 @@ export default function CampaignCreateSidebar({
             currentStep < CAMPAIGN_CREATE_STEP_COUNT ||
             (!isGiftCampaign &&
               currentStep >= CAMPAIGN_CREATE_STEP_COUNT &&
-              (!campaignSaved || !fundingQuote?.paymentMethod))
+              (!campaignSaved || (paymentRequired && !fundingQuote?.paymentMethod)))
           }
           className="mt-5 h-11 w-full rounded-xl bg-[#93C5FD] text-white hover:bg-[#60A5FA] disabled:opacity-60"
-          title={!fundingQuote?.paymentMethod ? "Please select a payment method" : ""}
+          title={
+            paymentRequired && !fundingQuote?.paymentMethod
+              ? "Please select a payment method"
+              : ""
+          }
         >
           <Megaphone className="mr-2 h-4 w-4" />
           {isPublishing ? "Publishing..." : publishLabel}
         </Button>
 
-        <button
-          type="button"
-          onClick={onSaveDraft}
-          disabled={isSaving}
-          className="mt-3 w-full text-center text-sm font-medium text-[#64748B] hover:text-[#334155] disabled:opacity-60"
-        >
-          {isSaving ? "Saving..." : "Save as Draft"}
-        </button>
+        {showSaveDraft ? (
+          <button
+            type="button"
+            onClick={onSaveDraft}
+            disabled={isSaving}
+            className="mt-3 w-full text-center text-sm font-medium text-[#64748B] hover:text-[#334155] disabled:opacity-60"
+          >
+            {isSaving ? "Saving..." : "Save as Draft"}
+          </button>
+        ) : null}
       </div>
 
-      {!fundingQuote?.paymentMethod ? (
+      {paymentRequired && !fundingQuote?.paymentMethod ? (
         <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
           <Shield className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
           <div>

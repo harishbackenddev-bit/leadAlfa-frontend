@@ -108,7 +108,7 @@ export default function CampaignDetailPage() {
   }, [searchParams, location.state?.focus]);
 
   const handleEdit = useCallback(() => {
-    if (getRawCampaignStatus(detailWithAlerts?.raw ?? detailWithAlerts) === "active") {
+    if (getRawCampaignStatus(detailWithAlerts?.raw ?? detailWithAlerts) === "closed") {
       return;
     }
     navigate("/brand/campaigns/edit", {
@@ -117,9 +117,9 @@ export default function CampaignDetailPage() {
   }, [navigate, detailWithAlerts, campaignIdentifier]);
 
   const editBlocked =
-    getRawCampaignStatus(detailWithAlerts?.raw ?? detailWithAlerts) === "active";
+    getRawCampaignStatus(detailWithAlerts?.raw ?? detailWithAlerts) === "closed";
   const editBlockReason = editBlocked
-    ? "Published campaigns cannot be edited."
+    ? "Closed campaigns cannot be edited."
     : null;
 
   const campaignPublicId = detailWithAlerts?.publicId || campaignIdentifier;

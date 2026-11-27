@@ -20,6 +20,8 @@ export default function StepCampaignBasics({
   platformOptions,
   compensationOptions,
   errors,
+  /** Campaign already paid: video length & compensation type are frozen. */
+  pricingLocked = false,
 }) {
   const videoLengthOptions = VIDEO_LENGTH_PACKAGES.map((pkg) => ({
     label: pkg.label,
@@ -99,6 +101,7 @@ export default function StepCampaignBasics({
           options={videoLengthOptions}
           inputClass={inputClass}
           error={errors.videoLength}
+          disabled={pricingLocked}
         />
 
         <div>
@@ -123,8 +126,11 @@ export default function StepCampaignBasics({
                   key={option.value}
                   type="button"
                   aria-pressed={isSelected}
+                  disabled={pricingLocked}
                   onClick={() => handleCompensationChange(option.value)}
                   className={`relative flex h-[48px] items-center justify-center gap-2 rounded-lg border text-base font-semibold transition-colors ${
+                    pricingLocked ? "cursor-not-allowed opacity-60" : ""
+                  } ${
                     isSelected
                       ? "border-[#1D4D8E] btn-gradient text-white"
                       : "border-[#E2E8F0] bg-white text-[#64748B] hover:border-[#CBD5E1]"
@@ -138,6 +144,11 @@ export default function StepCampaignBasics({
           </div>
           {errors.compensationType ? (
             <p className="mt-1 text-xs text-red-500">{errors.compensationType}</p>
+          ) : null}
+          {pricingLocked ? (
+            <p className="mt-1 text-xs text-[#64748B]">
+              Video length and compensation can't be changed after payment.
+            </p>
           ) : null}
         </div>
 

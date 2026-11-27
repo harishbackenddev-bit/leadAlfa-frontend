@@ -141,11 +141,14 @@ export function getCampaignPaymentStatus(campaign) {
   return String(campaign?.invoice?.paymentStatus ?? "").toLowerCase().trim();
 }
 
-/** PATCH — backend blocks active (403) and payment pending (423); §2 NW_CAMPAIGNAPI_INTEGRATION */
+/**
+ * PATCH — drafts and published campaigns can be edited (a published campaign is
+ * never charged again; pricing fields are frozen server-side). Closed = read-only.
+ */
 export function getEditCampaignBlockReason(campaign) {
   if (!campaign) return "Campaign not found.";
-  if (getRawCampaignStatus(campaign) === "active") {
-    return "Published campaigns cannot be edited.";
+  if (getRawCampaignStatus(campaign) === "closed") {
+    return "Closed campaigns cannot be edited.";
   }
   return null;
 }

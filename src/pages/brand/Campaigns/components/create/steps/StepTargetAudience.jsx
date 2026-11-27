@@ -15,6 +15,8 @@ export default function StepTargetAudience({
   selectOptions,
   locationOptions,
   errors,
+  /** Campaign already paid: creator count is frozen. */
+  pricingLocked = false,
 }) {
   return (
     <CampaignCreateStepCard title={stepMeta.title} description={stepMeta.description}>
@@ -64,6 +66,7 @@ export default function StepTargetAudience({
             min={1}
             max={MAX_CAMPAIGN_CREATORS}
             value={formData.numberOfCreators}
+            disabled={pricingLocked}
             onChange={(event) =>
               handleChange("numberOfCreators", sanitizeCreatorCountInput(event.target.value))
             }
@@ -73,7 +76,9 @@ export default function StepTargetAudience({
             <p className="mt-1 text-xs text-red-500">{errors.numberOfCreators}</p>
           ) : (
             <p className="mt-1 text-xs text-[#64748B]">
-              Enter a whole number from 1 to {MAX_CAMPAIGN_CREATORS}
+              {pricingLocked
+                ? "Number of creators can't be changed after payment."
+                : `Enter a whole number from 1 to ${MAX_CAMPAIGN_CREATORS}`}
             </p>
           )}
         </div>

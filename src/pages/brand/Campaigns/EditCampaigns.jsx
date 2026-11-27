@@ -5,17 +5,16 @@ import { CheckCircle2 } from "lucide-react";
 import CampaignForm from "./CampaignForm";
 import { useCampaign } from "./hooks/useViewCampaigns";
 import { getRawCampaignStatus, isDraftCampaign } from "./utils/campaignCardUtils";
-import {
-  updateCampaignByPublicId,
-  publishCampaign,
-  fundCampaign,
-  simulateFunded,
-} from "../../../services/api/apiservices";
+import { updateCampaignByPublicId } from "../../../services/api/apiservices";
 import {
   buildCampaignFormData,
   getApiErrorMessage,
 } from "./utils/campaignFormPayload";
 import { normalizeCampaignSaveResponse } from "./utils/campaignApiMappers";
+import {
+  openPaymentTab,
+  startCampaignFunding,
+} from "./utils/campaignPaymentFlow";
 import { invalidateCampaigns } from "../../../services/tanstack/queryService";
 import { CAMPAIGN_CREATE_STEPS } from "./data/campaignCreateStepsData";
 
@@ -55,8 +54,15 @@ export default function EditCampaigns() {
     return () => window.clearTimeout(timer);
   }, [feedbackModal, campaign?.publicId, navigate]);
 
-  const isPublished = getRawCampaignStatus(campaign) === "active";
-  const isEditLocked = isPublished;
+  const rawStatus = getRawCampaignStatus(campaign);
+  const isPublished = rawStatus === "active";
+  // Published campaigns stay editable (no second payment). Only closed ones are read-only.
+  const isEditLocked = rawStatus === "closed";
+  // After payment the price-defining fields (creators, video length, add-ons,
+  // compensation type) are frozen; everything else can be updated normally.
+  const isPricingLocked =
+    isPublished ||
+    String(campaign?.invoice?.paymentStatus ?? "").toLowerCase() === "paid";
   const isCashDraft =
     isDraftCampaign(campaign) &&
     String(campaign?.compensationType ?? "").toLowerCase().includes("cash");
@@ -66,6 +72,12 @@ export default function EditCampaigns() {
     if (!publicId) throw new Error("Missing campaign reference.");
 
     const fd = buildCampaignFormData({ formData, productImage, moodboardFiles });
+    if (isPricingLocked) {
+      // Paid campaign: never send the frozen pricing fields (server rejects changes).
+      ["numberOfCreators", "videoLength", "compensationType", "addOns"].forEach((key) =>
+        fd.delete(key)
+      );
+    }
     try {
       const rawResponse = await updateCampaignByPublicId(publicId, fd);
       const response = normalizeCampaignSaveResponse(rawResponse);
@@ -84,49 +96,45 @@ export default function EditCampaigns() {
   };
 
 
-const handlePublishCampaign = async (campaignPublicId) => {
-  console.log("🚀 PUBLISH CLICKED (Edit)");
-  console.log("   fundingQuote:", fundingQuote);
+  // One-time payment for a DRAFT. The server activates the campaign when
+  // TradeSafe confirms the deposit; the client never calls POST /publish.
+  const handlePublishCampaign = async (campaignPublicId) => {
+    if (isSubmitting) return;
 
-  if (isSubmitting) return;
-
-
-  if (!fundingQuote || !fundingQuote.paymentMethod) {
-    throw new Error("Please select a payment method first");
-  }
-
-  setIsSubmitting(true);
-
-  try {
-
-    const fundRes = await fundCampaign(campaignPublicId, {
-      paymentMethod: fundingQuote.paymentMethod,
-      quoteVersion: fundingQuote.quoteVersion,
-    });
-    const fundData = fundRes?.data?.success ? fundRes.data : fundRes;
-    const walletUrl = fundData?.fundingBatch?.walletDepositUrl;
-
-    if (!walletUrl) throw new Error("No wallet deposit link received.");
-    window.open(walletUrl, "_blank", "noopener,noreferrer");
-
-    const response = await publishCampaign(campaignPublicId);
-    if (!response?.campaignPublicId && !response?.invoicePublicId) {
-      throw new Error(response?.message || "Failed to publish campaign.");
+    if (!fundingQuote || !fundingQuote.paymentMethod) {
+      throw new Error("Please select a payment method first");
     }
 
-    invalidateCampaigns();
-    setFeedbackModal({
-      type: "success",
-      title: "Campaign published",
-      message: "Your campaign is funded and live.",
-    });
-    window.setTimeout(() => navigate("/brand/campaigns"), 1800);
-  } catch (error) {
-    throw new Error(getApiErrorMessage(error));
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+    // Must happen inside the click gesture, before any await.
+    const paymentTab = openPaymentTab();
+
+    setIsSubmitting(true);
+    try {
+      const result = await startCampaignFunding({
+        campaignPublicId,
+        fundingQuote,
+        paymentTab,
+      });
+
+      if (result === "failed") {
+        throw new Error("Payment was not completed. Please try again.");
+      }
+
+      invalidateCampaigns();
+      setFeedbackModal({
+        type: "success",
+        title: result === "paid" ? "Campaign published" : "Payment received",
+        message:
+          result === "paid"
+            ? "Your campaign is funded and live."
+            : "We are confirming your payment. Your campaign will go live automatically as soon as it is confirmed.",
+      });
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleFinalSave = async (args) => {
     setIsSubmitting(true);
@@ -142,7 +150,10 @@ const handlePublishCampaign = async (campaignPublicId) => {
 
   const editSubtitle = (() => {
     if (openReviewStep) return "Review your draft and publish when you're ready.";
-    if (isPublished) return "Published campaigns cannot be edited.";
+    if (isEditLocked) return "Closed campaigns cannot be edited.";
+    if (isPublished) {
+      return "Update your live campaign. Pricing, creator count and add-ons are locked after payment - no new payment is needed.";
+    }
     return "Update your draft using the wizard.";
   })();
 
@@ -191,12 +202,13 @@ const handlePublishCampaign = async (campaignPublicId) => {
           isEditLocked
             ? "Editing Disabled"
             : isSubmitting
-              ? openReviewStep ? "Processing..." : "Updating..."
-              : openReviewStep ? "Publish Campaign" : "Update Campaign"
+              ? isCashDraft ? "Processing..." : "Updating..."
+              : isCashDraft ? "Publish Campaign" : "Update Campaign"
         }
         initialCampaignData={campaign}
         initialStep={initialStep}
         isReadOnly={isEditLocked}
+        isPricingLocked={isPricingLocked}
         onSaveCampaign={patchCampaign}
         onSaveSuccess={handleSaveSuccess}
         onPublishCampaign={isCashDraft && !isEditLocked ? handlePublishCampaign : undefined}

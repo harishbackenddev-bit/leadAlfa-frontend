@@ -101,23 +101,31 @@ export function buildCampaignFormData({ formData, productImage, moodboardFiles }
     fd.append(key, JSON.stringify(value));
   };
 
+  // Optional fields: send "" / [] too, otherwise clearing a field (or removing
+  // every add-on) in the edit form is silently ignored by PATCH. The backend
+  // turns "" into null for these.
+  const appendClearable = (key, value) => {
+    fd.append(key, value === undefined || value === null ? "" : value);
+  };
+
   append("campaignTitle", payload.campaignTitle);
   append("deliverables", payload.deliverables);
   append("numberOfCreators", payload.numberOfCreators);
-  append("productServiceUrl", payload.productServiceUrl);
   append("productStatus", payload.productStatus);
   append("compensationType", payload.compensationType);
-  append("giftNameDescription", payload.giftNameDescription);
-  append("campaignGoal", payload.campaignGoal);
   append("followerCount", payload.followerCount);
   append("engagementRate", payload.engagementRate);
-  append("keyMessage", payload.keyMessage);
   append("campaignBrief", payload.campaignBrief);
-  append("applicationDeadline", payload.applicationDeadline);
-  append("campaignStarts", payload.campaignStarts);
-  append("typeOfPet", payload.typeOfPet);
   append("moodboardsInspiration", payload.moodboardsInspiration);
-  append("moodboardInspirationUrl", payload.moodboardInspirationUrl);
+
+  appendClearable("productServiceUrl", payload.productServiceUrl);
+  appendClearable("giftNameDescription", payload.giftNameDescription);
+  appendClearable("campaignGoal", payload.campaignGoal);
+  appendClearable("keyMessage", payload.keyMessage);
+  appendClearable("applicationDeadline", payload.applicationDeadline);
+  appendClearable("campaignStarts", payload.campaignStarts);
+  appendClearable("typeOfPet", payload.typeOfPet);
+  appendClearable("moodboardInspirationUrl", payload.moodboardInspirationUrl);
 
   append("videoLength", toApiVideoLength(payload.videoLength));
 
@@ -127,7 +135,8 @@ export function buildCampaignFormData({ formData, productImage, moodboardFiles }
   appendArray("location", payload.location);
   appendArray("ageRange", payload.ageRange);
   appendArray("gender", payload.gender);
-  appendArray("addOns", payload.addOns);
+  // Always send add-ons ("[]" when none) so removing them actually saves.
+  fd.append("addOns", JSON.stringify(Array.isArray(payload.addOns) ? payload.addOns : []));
 
   if (payload.creativeDirection) {
     fd.append("creativeDirection", JSON.stringify(payload.creativeDirection));

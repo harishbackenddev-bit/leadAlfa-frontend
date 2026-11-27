@@ -40,6 +40,8 @@ export default function StepAddOns({
   handleToggleAddOn,
   hasVideoLength,
   isGiftCampaign = false,
+  /** Campaign already paid: add-ons are frozen. */
+  pricingLocked = false,
 }) {
   const selectedIds = formData.selectedAddOns || [];
 
@@ -64,13 +66,22 @@ export default function StepAddOns({
         </div>
       ) : null}
 
+      {pricingLocked ? (
+        <div className="mb-5 flex items-start gap-3 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-3">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[#64748B]" />
+          <p className="text-sm text-[#64748B]">
+            Add-ons can't be changed after the campaign has been paid for.
+          </p>
+        </div>
+      ) : null}
+
       <div className="space-y-3">
         {CAMPAIGN_ADD_ONS.map((addon) => (
           <AddOnOption
             key={addon.id}
             addon={addon}
             checked={selectedIds.includes(addon.id)}
-            disabled={!hasVideoLength}
+            disabled={!hasVideoLength || pricingLocked}
             onToggle={() => handleToggleAddOn(addon.id)}
           />
         ))}

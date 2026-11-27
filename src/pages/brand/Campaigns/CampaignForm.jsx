@@ -62,6 +62,8 @@ export default function CampaignForm({
   initialCampaignData = null,
   initialStep = 1,
   isReadOnly = false,
+  /** Campaign already paid/published: price-defining fields are frozen, no payment UI. */
+  isPricingLocked = false,
   isSubmitting = false,
   fundingQuote,
   onQuoteChange,
@@ -263,6 +265,10 @@ export default function CampaignForm({
   const isAddOnsStep = currentStepMeta?.key === "addons";
   const stepContinueLabel = continueLabel || (isAddOnsStep ? "Save & Continue" : "Continue");
   const canPublish = Boolean(campaignPublicId) || isGiftCampaign;
+  // Payment UI (method picker, TradeSafe fee, "payment required" banner) only
+  // exists while a DRAFT is being published. Published campaigns never pay again.
+  const paymentRequired =
+    Boolean(onPublishCampaign) && !isGiftCampaign && !isPricingLocked;
 
   const applySaveResponse = (response) => {
     const savedCampaign = extractSavedCampaign(response);
@@ -430,6 +436,7 @@ export default function CampaignForm({
             platformOptions={platformOptions}
             compensationOptions={compensationOptions}
             errors={errors}
+            pricingLocked={isPricingLocked}
           />
         );
       case "audience":
@@ -441,6 +448,7 @@ export default function CampaignForm({
             selectOptions={selectOptions}
             locationOptions={locationOptions}
             errors={errors}
+            pricingLocked={isPricingLocked}
           />
         );
       case "creative":
@@ -477,6 +485,7 @@ export default function CampaignForm({
             handleToggleAddOn={handleToggleAddOn}
             hasVideoLength={invoice.hasVideoLength}
             isGiftCampaign={isGiftCampaign}
+            pricingLocked={isPricingLocked}
           />
         );
       case "review":
@@ -485,7 +494,9 @@ export default function CampaignForm({
             formData={formData}
             invoice={invoice}
             campaignPublicId={campaignPublicId}
+            fundingQuote={fundingQuote}
             onQuoteChange={onQuoteChange}
+            paymentRequired={paymentRequired}
           />
         );
       default:
@@ -630,7 +641,9 @@ export default function CampaignForm({
             campaignPublicId={campaignPublicId}   
             hasPaymentMethod={Boolean(fundingQuote?.paymentMethod)}
             fundingQuote={fundingQuote}
-            onQuoteChange={onQuoteChange} 
+            onQuoteChange={onQuoteChange}
+            paymentRequired={paymentRequired}
+            showSaveDraft={!isPricingLocked}
           />
         </div>
       </div>

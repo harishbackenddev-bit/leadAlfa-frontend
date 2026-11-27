@@ -4,9 +4,6 @@ import CampaignForm from "./CampaignForm";
 import {
   createCampaign,
   updateCampaignByPublicId,
-  publishCampaign,
-  fundCampaign,
-  getCampaignPaymentStatus,
 } from "../../../services/api/apiservices";
 import { invalidateCampaigns } from "../../../services/tanstack/queryService";
 import {
@@ -14,38 +11,11 @@ import {
   getApiErrorMessage,
 } from "./utils/campaignFormPayload";
 import { normalizeCampaignSaveResponse } from "./utils/campaignApiMappers";
+import {
+  openPaymentTab,
+  startCampaignFunding,
+} from "./utils/campaignPaymentFlow";
 
-const PAID_BATCH_STATUSES = ["FULLY_FUNDED", "PAID", "COMPLETED"];
-const PAID_CAMPAIGN_STATUSES = ["FUNDS_RECEIVED", "FUNDED", "PAID"];
-const FAILED_BATCH_STATUSES = ["FAILED", "CANCELLED", "EXPIRED", "DECLINED"];
-
-const pollFundingStatus = async (
-  campaignId,
-  { intervalMs = 3000, maxAttempts = 100 } = {}
-) => {
-  if (!campaignId) return false;
-
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    try {
-      const res = await getCampaignPaymentStatus(campaignId);
-      const result = res?.data ?? res;
-
-      if (result?.isFullyFunded) return true;
-
-      const batchStatus = result?.fundingBatch?.status;
-      if (PAID_BATCH_STATUSES.includes(batchStatus)) return true;
-      if (PAID_CAMPAIGN_STATUSES.includes(result?.fundingStatus)) return true;
-
-      if (FAILED_BATCH_STATUSES.includes(batchStatus)) return false;
-    } catch {
-      // transient network errors — keep polling
-    }
-
-    await new Promise((r) => setTimeout(r, intervalMs));
-  }
-
-  return false;
-};
 
 export default function CreateCampaigns() {
   const navigate = useNavigate();
@@ -78,33 +48,36 @@ export default function CreateCampaigns() {
     invalidateCampaigns();
   };
 
+  /**
+   * Payment happens once, here, while the draft is being published.
+   * The server activates the campaign when TradeSafe confirms the deposit
+   * (webhook) - the client must NOT call POST /publish afterwards.
+   */
   const handlePublishCampaign = async (campaignPublicId) => {
     if (isSubmitting) return;
     if (!fundingQuote?.paymentMethod) {
       throw new Error("Please select a payment method first");
     }
 
+    // Open the payment tab inside the click gesture (before any await),
+    // otherwise popup blockers stop it.
+    const paymentTab = openPaymentTab();
+
     setIsSubmitting(true);
     try {
-      const fundRes = await fundCampaign(campaignPublicId, {
-        paymentMethod: fundingQuote.paymentMethod,
-        quoteVersion: fundingQuote.quoteVersion,
+      const result = await startCampaignFunding({
+        campaignPublicId,
+        fundingQuote,
+        paymentTab,
       });
-      const fundData = fundRes?.data?.success ? fundRes.data : fundRes;
 
-      const walletUrl = fundData?.fundingBatch?.walletDepositUrl;
-      if (!walletUrl) throw new Error("No wallet deposit link received.");
-
-      window.location.href = walletUrl;
-
-      const paid = await pollFundingStatus(campaignPublicId);
-      if (!paid) throw new Error("Payment not completed.");
-
-      const response = await publishCampaign(campaignPublicId);
-      if (!response?.campaignPublicId && !response?.invoicePublicId) {
-        throw new Error(response?.message || "Failed to publish campaign.");
+      if (result === "failed") {
+        throw new Error("Payment was not completed. Please try again.");
       }
 
+      // "paid"      -> campaign is live.
+      // "timeout" / "redirected" -> still confirming; it goes live automatically
+      //                             once TradeSafe confirms, and shows in the list.
       invalidateCampaigns();
       navigate("/brand/campaigns");
     } catch (error) {
